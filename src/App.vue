@@ -1,43 +1,65 @@
-<script setup lang="ts">
+<script lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 import HelloWorld from './components/HelloWorld.vue'
 import block from './components/block.vue'
+import BlockTwo from './components/BlockTwo.vue'
+import { defineComponent } from 'vue'
+export default defineComponent({
+  name: 'App',
 
-import { ref } from 'vue'
-import { onMounted, onUnmounted } from 'vue'
+  components: {
+    HelloWorld,
+    block,
+    BlockTwo,
+  },
 
-// Cross-browser support as described in:
-// https://stackoverflow.com/questions/1248081
-function getClientWidth () {
-  return Math.max(
-    document.documentElement!.clientWidth,
-    window.innerWidth
-  )
-}
+  data () {
+    return {
+      height: 0,
+      width: 0
+    }
+  },
 
-function getClientHeight () {
-  return Math.max(
-    document.documentElement!.clientHeight,
-    window.innerHeight
-  )
-}
+  methods: {
+    // Cross-browser support as described in:
+    // https://stackoverflow.com/questions/1248081
+    getClientWidth (): number {
+      return Math.max(
+        document.documentElement!.clientWidth,
+        window.innerWidth
+      )
+    },
+    getClientHeight (): number {
+      return Math.max(
+        document.documentElement!.clientHeight,
+        window.innerHeight
+      )
+    },
+    onResize (): void {
+      this.height = this.getClientHeight()
+      this.width = this.getClientWidth()
 
-const height = ref(getClientHeight())
-const width = ref(getClientWidth())
+      for (let key in this.$layout) {
+        let ele = this.$layout[key].ele
+        this.$layout[key].handler(ele)
+      }
+    },
+  },
 
-function onResize () {
-  height.value = getClientHeight()
-  width.value = getClientWidth()
-}
+  mounted () {
+    this.onResize()
 
-onMounted(() => {
-  window.addEventListener('resize', onResize, { passive: true });
+    // 这里还是有性能损失，需要想办法做一个限流阀
+    // https://developer.mozilla.org/zh-CN/docs/Web/API/Window/resize_event
+    window.addEventListener('resize', this.onResize, { passive: true })
+  },
+
+  unmounted () {
+    window.removeEventListener('resize', this.onResize)
+  }
 })
 
-onUnmounted(() => {
-  window.removeEventListener('resize', onResize)
-})
 
 </script>
 
@@ -48,7 +70,8 @@ onUnmounted(() => {
   <div>{{ width }}, {{ height }}</div>
   </div>
   <div style="flex:1; display: flex; justify-content: space-around;align-items: center;">
-    <block></block>
+    <BlockTwo arg="foo"></BlockTwo>
+    <BlockTwo arg="bar"></BlockTwo>
     <block></block>
   </div>
 </template>
