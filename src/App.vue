@@ -2,6 +2,7 @@
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 import HelloWorld from './components/HelloWorld.vue'
+import block from './components/block.vue'
 
 import { ref } from 'vue'
 import { onMounted, onUnmounted } from 'vue'
@@ -41,18 +42,30 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
+  <div>
+  <img alt="Vue logo" src="./assets/logo.png" style="margin-top: 60px"/>
   <HelloWorld msg="Hello Vue 3 + TypeScript + Vite" />
   <div>{{ width }}, {{ height }}</div>
+  </div>
+  <div style="flex:1; display: flex; justify-content: space-around;align-items: center;">
+    <block></block>
+    <block></block>
+  </div>
 </template>
 
 <style>
+html, body {
+  height: 100%;
+  margin: 0;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 </style>
