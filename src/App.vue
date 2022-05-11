@@ -4,6 +4,8 @@
 //import BlockTwo from './components/BlockTwo.vue'
 import MailApp from './views/MailApp.vue'
 import { defineComponent } from 'vue'
+import { getClientHeight, getClientWidth } from './layout'
+
 export default defineComponent({
   name: 'App',
 
@@ -24,23 +26,9 @@ export default defineComponent({
   },
 
   methods: {
-    // Cross-browser support as described in:
-    // https://stackoverflow.com/questions/1248081
-    getClientWidth (): number {
-      return Math.max(
-        document.documentElement!.clientWidth,
-        window.innerWidth
-      )
-    },
-    getClientHeight (): number {
-      return Math.max(
-        document.documentElement!.clientHeight,
-        window.innerHeight
-      )
-    },
     onResize (): void {
-      this.height = this.getClientHeight()
-      this.width = this.getClientWidth()
+      this.height = getClientHeight()
+      this.width = getClientWidth()
 
       for (let key in this.$layout) {
         let ele = this.$layout[key].ele
