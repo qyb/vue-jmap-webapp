@@ -1,17 +1,19 @@
 <script lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import HelloWorld from './components/HelloWorld.vue'
-import block from './components/block.vue'
-import BlockTwo from './components/BlockTwo.vue'
+//import HelloWorld from './components/HelloWorld.vue'
+//import block from './components/block.vue'
+//import BlockTwo from './components/BlockTwo.vue'
+import MailApp from './views/MailApp.vue'
 import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'App',
 
   components: {
+    /*
     HelloWorld,
     block,
     BlockTwo,
+    */
+    MailApp,
   },
 
   data () {
@@ -52,6 +54,18 @@ export default defineComponent({
 
     // 这里还是有性能损失，需要想办法做一个限流阀
     // https://developer.mozilla.org/zh-CN/docs/Web/API/Window/resize_event
+    let resizeTimeout: number | null = null
+    const _this = this
+    function resizeThrottler () {
+      // ignore resize events as long as an actualResizeHandler execution is in the queue
+      if ( !resizeTimeout ) {
+        resizeTimeout = setTimeout(function() {
+          resizeTimeout = null
+          // The actualResizeHandler will execute at a rate of 15fps
+          _this.onResize()
+        }, 66)
+      }
+    }
     window.addEventListener('resize', this.onResize, { passive: true })
   },
 
@@ -64,6 +78,8 @@ export default defineComponent({
 </script>
 
 <template>
+  <MailApp arg="mail"></MailApp>
+  <!--
   <div>
   <img alt="Vue logo" src="./assets/logo.png" style="margin-top: 60px"/>
   <HelloWorld msg="Hello Vue 3 + TypeScript + Vite" />
@@ -74,6 +90,7 @@ export default defineComponent({
     <BlockTwo arg="bar"></BlockTwo>
     <block></block>
   </div>
+  -->
 </template>
 
 <style>
