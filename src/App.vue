@@ -42,7 +42,7 @@ export default defineComponent({
 
     // 这里还是有性能损失，需要想办法做一个限流阀
     // https://developer.mozilla.org/zh-CN/docs/Web/API/Window/resize_event
-    let resizeTimeout: number | null = null
+    let resizeTimeout: number | null | NodeJS.Timeout = null
     const _this = this
     function resizeThrottler () {
       // ignore resize events as long as an actualResizeHandler execution is in the queue
