@@ -21,31 +21,40 @@ const MIN_COMPACT = 768
   >=920, normalview, compact folder/msglist
   >=1000, fullview
  */
-// default define as compact mode
+// default define as normalview
 const layoutState = {
-  widthState: NORMAL_STATE
+  widthState: NORMAL_STATE,
+  folderState: true, // false: 手动隐藏
 }
 const folderClass = ref('folder-normal')
 const msglistClass = ref('msglist-normal')
 
 function setStateFull () {
-  folderClass.value = 'folder-full'
+  if (layoutState.folderState) {
+    folderClass.value = 'folder-full'
+  }
   msglistClass.value = 'msglist-full'
   layoutState.widthState = FULL_STATE
 }
 function setStateNormal () {
-  folderClass.value = 'folder-normal'
+  if (layoutState.folderState) {
+    folderClass.value = 'folder-normal'
+  }
   msglistClass.value = 'msglist-normal'
   layoutState.widthState = NORMAL_STATE
 }
 function setStateCompact () {
+  folderClass.value = 'folder-hidden'
+  msglistClass.value = 'msglist-normal'
   layoutState.widthState = COMPACT_STATE
 }
 function setStateMini () {
+  folderClass.value = 'folder-hidden'
   layoutState.widthState = MINI_STATE
 }
 
 function onResize (ele: HTMLElement): void {
+  // resize 事件不改动 layoutState.folderState 的值
   width.value = ele.offsetWidth,
   height.value = ele.offsetHeight
 
@@ -68,10 +77,29 @@ function onResize (ele: HTMLElement): void {
   }
 }
 
+function drawer () {
+  // 如果当前是 mini or compact, 点击 drawer 只能以浮层形式进出;
+  // 如果当前是 normal or full, 点击 drawer 占据左侧宽度
+  if (layoutState.widthState < NORMAL_STATE) {
+    if (folderClass.value == 'folder-hidden') {
+      folderClass.value = 'folder-hidden open'
+    } else {
+      folderClass.value = 'folder-hidden'
+    }
+  } else {
+    layoutState.folderState = !layoutState.folderState
+    if (layoutState.folderState) {
+      folderClass.value = (layoutState.widthState == NORMAL_STATE) ? 'folder-normal' : 'folder-full'
+    } else {
+      folderClass.value = 'folder-hidden'
+    }
+  }
+}
+
 onMounted(() => {
   const h = getClientHeight()
   const w = getClientWidth()
-  console.log(h, w)
+  console.log(`screenSize: (${w}, ${h})`)
 
   if (w >= MIN_FULL) {
     setStateFull()
@@ -93,12 +121,18 @@ defineProps<{
 <template>
   <div v-layout:[arg]="onResize" class="appcontainer">
     <div class="menu">
-      Toolbar, {{ width }}, {{ height }}
+      <button class="btn" @click="drawer"></button>
+      <div>
+        Toolbar, {{ width }}, {{ height }}
+      </div>
     </div>
     <div class="main">
       <div :class="folderClass" class="folder">
+        <p>abc</p>
+        <p>xyz</p>
       </div>
-      <div :class="msglistClass" class="msglist">
+
+      <div :class="msglistClass" class="msglist" v-if="layoutState.widthState > 0">
 
       </div>
       <div class="msgcontent"></div>
@@ -119,8 +153,35 @@ defineProps<{
   flex-direction: row;
 }
 
+.menu {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  height: 32px;
+}
+.menu .btn {
+  margin-left: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  width: 28px;
+}
+
 .folder {
   background-color: aquamarine;
+}
+
+.folder-hidden {
+  position: absolute;
+  z-index:1000;
+  box-shadow:5px 0px 10px rgba(0,0,0,.2);
+  height: calc(100% - 32px); /* 去掉顶部 menu 的高度 */
+  left: -198px;
+  width: 198px;
+  max-width: 198px;
+  transition: all 0.3s;
+}
+.folder-hidden.open {
+  left: 0px;
 }
 
 .folder-normal {
