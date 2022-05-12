@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onMounted } from 'vue'
-import { getClientHeight, getClientWidth } from '@/directives/resize';
+import { getClientHeight, getClientWidth } from '@/utils/screen';
 
 const width = ref(0)
 const height = ref(0)

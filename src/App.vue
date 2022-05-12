@@ -4,32 +4,21 @@
 //import BlockTwo from './components/BlockTwo.vue'
 import MailApp from './views/MailApp.vue'
 import { defineComponent } from 'vue'
-import { getClientHeight, getClientWidth } from './directives/resize'
 
 export default defineComponent({
   name: 'App',
 
   components: {
-    /*
-    HelloWorld,
-    block,
-    BlockTwo,
-    */
     MailApp,
   },
 
   data () {
     return {
-      height: 0,
-      width: 0
     }
   },
 
   methods: {
     onResize (): void {
-      this.height = getClientHeight()
-      this.width = getClientWidth()
-
       for (let key in this.$layout) {
         let ele = this.$layout[key].ele
         this.$layout[key].handler(ele)
@@ -67,18 +56,6 @@ export default defineComponent({
 
 <template>
   <MailApp arg="mail"></MailApp>
-  <!--
-  <div>
-  <img alt="Vue logo" src="./assets/logo.png" style="margin-top: 60px"/>
-  <HelloWorld msg="Hello Vue 3 + TypeScript + Vite" />
-  <div>{{ width }}, {{ height }}</div>
-  </div>
-  <div style="flex:1; display: flex; justify-content: space-around;align-items: center;">
-    <BlockTwo arg="foo"></BlockTwo>
-    <BlockTwo arg="bar"></BlockTwo>
-    <block></block>
-  </div>
-  -->
 </template>
 
 <style>
