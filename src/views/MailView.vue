@@ -42,9 +42,9 @@ export default defineComponent({
 <template>
   <div class="mailview">
     <div :class="msglistClass" class="msglist" v-if="showList">
-
+      foo
     </div>
-    <div class="msgcontent"></div>
+    <div class="msgcontent">bar</div>
   </div>
 </template>
 
@@ -52,12 +52,12 @@ export default defineComponent({
 .mailview {
   flex-grow: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .msglist {
-  background-color: beige;
-  height: 100%;
+  background-color: #edf0f2;
+  color: #344955;
 }
 
 .msglist-normal {
@@ -72,5 +72,7 @@ export default defineComponent({
 
 .msgcontent {
   flex-grow: 1;
+  background-color: #fefefe;
+  color: #344955;
 }
 </style>

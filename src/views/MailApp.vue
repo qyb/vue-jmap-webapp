@@ -123,6 +123,24 @@ defineProps<{
 </template>
 
 <style>
+/*
+  Color theme:
+    Primary   #344955 (Reply Blue)
+    Secondary #F9AA33 (Reply Orange)
+    800       #232F34
+    600       #4A6572
+
+    with Primary
+    #b4c1cc (fg)
+    #faab1a (highlight)
+
+    AppBar
+    #d2dbe0 (bg)
+    #82929a (icon)
+
+    MsgContent  #fefefe (grey)
+    MsgList     #edf0f2
+ */
 .appcontainer {
   height: 100%;
   display: flex;
@@ -140,6 +158,8 @@ defineProps<{
   flex-direction: row;
   justify-content: space-between;
   height: 32px;
+  background-color: #d2dbe0;
+  color: #232F34;
 }
 .menu .btn {
   margin-left: 4px;
@@ -149,7 +169,8 @@ defineProps<{
 }
 
 .folder {
-  background-color: aquamarine;
+  background-color: #344955;
+  color: #b4c1cc;
 }
 
 .folder-hidden {
