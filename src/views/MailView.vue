@@ -4,6 +4,8 @@
   所以 List/Content 的数据都封装在这里完成
  */
 import { defineComponent } from 'vue'
+import { MINI_STATE, FULL_STATE } from '@/utils/screen';
+
 export default defineComponent({
   name: 'MailView',
 
@@ -16,8 +18,6 @@ export default defineComponent({
 
   data () {
     return {
-      // showList: true,
-      msglistClass: 'msglist-normal',
     }
   },
 
@@ -31,8 +31,11 @@ export default defineComponent({
 
   computed: {
     showList () {
-      return this.widthState > 0 // MINI_STATE(0) or other
-    }
+      return this.widthState > MINI_STATE
+    },
+    msglistClass () {
+      return this.widthState == FULL_STATE ? 'msglist-full' : 'msglist-normal'
+    },
   }
 })
 </script>

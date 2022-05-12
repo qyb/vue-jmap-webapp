@@ -1,52 +1,37 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onMounted } from 'vue'
-import { getClientHeight, getClientWidth } from '@/utils/screen';
+import {
+  getClientHeight, getClientWidth,
+  MINI_STATE, COMPACT_STATE, NORMAL_STATE, FULL_STATE,
+  MIN_FULL, MIN_NORMAL, MIN_COMPACT,
+ } from '@/utils/screen';
 import MailView from './MailView.vue';
 
 const width = ref(0)
 const height = ref(0)
 
-const MINI_STATE = 0
-const COMPACT_STATE = 1
-const NORMAL_STATE = 2
-const FULL_STATE = 3
-
-const MIN_FULL = 1000
-const MIN_NORMAL = 920
-const MIN_COMPACT = 768
-
-/*
-  <768, miniview, only msgcontent
-  >=768, compactview, no folder
-  >=920, normalview, compact folder/msglist
-  >=1000, fullview
- */
 // default define as normalview
 const layoutState = {
   widthState: NORMAL_STATE,
   folderState: true, // false: 手动隐藏
 }
 const folderClass = ref('folder-normal')
-const msglistClass = ref('msglist-normal')
 
 function setStateFull () {
   if (layoutState.folderState) {
     folderClass.value = 'folder-full'
   }
-  msglistClass.value = 'msglist-full'
   layoutState.widthState = FULL_STATE
 }
 function setStateNormal () {
   if (layoutState.folderState) {
     folderClass.value = 'folder-normal'
   }
-  msglistClass.value = 'msglist-normal'
   layoutState.widthState = NORMAL_STATE
 }
 function setStateCompact () {
   folderClass.value = 'folder-hidden'
-  msglistClass.value = 'msglist-normal'
   layoutState.widthState = COMPACT_STATE
 }
 function setStateMini () {

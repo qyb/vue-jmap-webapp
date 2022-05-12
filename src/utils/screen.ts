@@ -13,7 +13,24 @@ function getClientHeight (): number {
   )
 }
 
+/*
+  <768, miniview, only msgcontent
+  >=768, compactview, no folder
+  >=920, normalview, compact folder/msglist
+  >=1000, fullview
+ */
+
+const MINI_STATE = 0
+const COMPACT_STATE = 1
+const NORMAL_STATE = 2
+const FULL_STATE = 3
+
+const MIN_FULL = 1000
+const MIN_NORMAL = 920
+const MIN_COMPACT = 768
+
 export {
-  getClientWidth,
-  getClientHeight,
+  getClientWidth, getClientHeight,
+  MINI_STATE, COMPACT_STATE, NORMAL_STATE, FULL_STATE,
+  MIN_FULL, MIN_NORMAL, MIN_COMPACT,
 }
