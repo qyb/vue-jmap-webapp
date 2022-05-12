@@ -4,7 +4,7 @@
 //import BlockTwo from './components/BlockTwo.vue'
 import MailApp from './views/MailApp.vue'
 import { defineComponent } from 'vue'
-import { getClientHeight, getClientWidth } from './layout'
+import { getClientHeight, getClientWidth } from './directives/resize'
 
 export default defineComponent({
   name: 'App',
