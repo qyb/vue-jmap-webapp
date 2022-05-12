@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { onMounted } from 'vue'
 import { getClientHeight, getClientWidth } from '@/utils/screen';
+import MailView from './MailView.vue';
 
 const width = ref(0)
 const height = ref(0)
@@ -122,7 +123,7 @@ defineProps<{
   <div v-layout:[arg]="onResize" class="appcontainer">
     <div class="menu">
       <button class="btn" @click="drawer"></button>
-      <div>
+      <div style="flex: 1;">
         Toolbar, {{ width }}, {{ height }}
       </div>
     </div>
@@ -131,11 +132,7 @@ defineProps<{
         <p>abc</p>
         <p>xyz</p>
       </div>
-
-      <div :class="msglistClass" class="msglist" v-if="layoutState.widthState > 0">
-
-      </div>
-      <div class="msgcontent"></div>
+      <MailView :widthState="layoutState.widthState" />
     </div>
   </div>
 </template>
@@ -192,23 +189,5 @@ defineProps<{
 .folder-full {
   width: 214px;
   max-width: 236px;
-}
-
-.msglist {
-  background-color: beige;
-}
-
-.msglist-normal {
-  width: 350px;
-  max-width: 350px;
-}
-
-.msglist-full {
-  width: 376px;
-  max-width: 380px;
-}
-
-.msgcontent {
-  flex-grow: 1;
 }
 </style>
