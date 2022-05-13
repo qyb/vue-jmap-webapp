@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { onMounted } from 'vue'
 import {
   getClientHeight, getClientWidth,
@@ -9,9 +9,11 @@ import {
 import MailView from './MailView.vue'
 import { Client } from 'jmap-client-ts/lib'
 import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
+import { IMailboxProperties } from 'jmap-client-ts/lib/types';
 
 const width = ref(0)
 const height = ref(0)
+const username = ref('')
 
 // default define as normalview
 const layoutState = {
@@ -84,6 +86,17 @@ function drawer () {
   }
 }
 
+const knownBoxList: Array<{
+  name: string
+  displayName?: string // i18n
+  props?: IMailboxProperties
+}> = reactive([
+  {name: 'Inbox'},
+  {name: 'Drafts'},
+  {name: 'Sent'},
+  {name: 'Trash'},
+])
+
 onMounted(() => {
   const h = getClientHeight()
   const w = getClientWidth()
@@ -99,12 +112,15 @@ onMounted(() => {
     setStateMini()
   }
 
-  let username = 'qyb'
+  /*
+    jmapweb:main.ts 将 jmap-client-ts 又做了一层封装
+    其中颇有一些值得借鉴的地方, 比如一次 HTTP 多个请求/响应的解析封装
+   */
+  let login = 'qyb'
   let password = 'test'
-  let authorizationHeader = `Basic ${window.btoa(`${username}:${password}`)}`
+  let authorizationHeader = `Basic ${window.btoa(`${login}:${password}`)}`
   const transport = new XmlHttpRequestTransport(() => {
     let r = new XMLHttpRequest()
-    //r.setHeader("Content-Type", "application/json")
     return r;
   })
   const client = new Client({
@@ -112,12 +128,31 @@ onMounted(() => {
     sessionUrl: '/jmap',
     transport: transport,
     httpHeaders: {
+      "Content-Type": "application/json",
       Authorization: authorizationHeader
     }
   })
   client.fetchSession().then(() => {
     let session = client.getSession()
     console.log("session: %o", session)
+    let accountId = client.getFirstAccountId()
+    username.value = session.username
+    console.log(`${accountId} ${login}`)
+
+    client.mailbox_get({ // 参考 jmapweb: Mail.svelte 参数
+      accountId: null,  // null 传递进去会自动使用 getFirstAccountId
+      ids: null,
+    }).then(result => {
+      let boxes = result.list
+      for (let box of boxes) {
+        knownBoxList.forEach((item, index, array) => {
+          if (box.name == item.name) {
+            item.props = box
+          }
+        })
+      }
+      console.log(knownBoxList)
+    })
   }).catch(error => {
     // 可能是网络错误，也可能是认证失败
     console.log(error.message)
@@ -132,16 +167,20 @@ defineProps<{
 
 <template>
   <div v-layout:[arg]="onResize" class="appcontainer">
-    <div class="menu">
+    <div class="appbar">
       <button class="btn" @click="drawer"></button>
       <div style="flex: 1;">
         MailAppViewSize: {{ width }}, {{ height }}
       </div>
+      <div style="margin-right: 4px;"> {{ username }}</div>
     </div>
     <div class="main">
       <div :class="folderClass" class="folder">
-        <p>abc</p>
-        <p>xyz</p>
+        <ul>
+          <li v-for="item in knownBoxList">
+            {{`${item.name}(${item.props?.unreadEmails})`}}
+          </li>
+        </ul>
       </div>
       <MailView :widthState="layoutState.widthState" />
     </div>
@@ -179,19 +218,21 @@ defineProps<{
   flex-direction: row;
 }
 
-.menu {
+.appbar {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   height: 32px;
   background-color: #d2dbe0;
   color: #232F34;
+  align-items: center;
 }
-.menu .btn {
+.appbar .btn {
   margin-left: 4px;
   margin-top: 4px;
   margin-bottom: 4px;
   width: 28px;
+  height: 24px;
 }
 
 .folder {
