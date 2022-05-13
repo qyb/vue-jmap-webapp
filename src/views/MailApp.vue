@@ -6,7 +6,9 @@ import {
   MINI_STATE, COMPACT_STATE, NORMAL_STATE, FULL_STATE,
   MIN_FULL, MIN_NORMAL, MIN_COMPACT,
  } from '@/utils/screen';
-import MailView from './MailView.vue';
+import MailView from './MailView.vue'
+import { Client } from 'jmap-client-ts/lib'
+import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
 
 const width = ref(0)
 const height = ref(0)
@@ -96,6 +98,30 @@ onMounted(() => {
   } else {
     setStateMini()
   }
+
+  let username = 'qyb'
+  let password = 'test'
+  let authorizationHeader = `Basic ${window.btoa(`${username}:${password}`)}`
+  const transport = new XmlHttpRequestTransport(() => {
+    let r = new XMLHttpRequest()
+    //r.setHeader("Content-Type", "application/json")
+    return r;
+  })
+  const client = new Client({
+    accessToken: '',
+    sessionUrl: '/jmap',
+    transport: transport,
+    httpHeaders: {
+      Authorization: authorizationHeader
+    }
+  })
+  client.fetchSession().then(() => {
+    let session = client.getSession()
+    console.log("session: %o", session)
+  }).catch(error => {
+    // 可能是网络错误，也可能是认证失败
+    console.log(error.message)
+  })
 })
 
 defineProps<{
@@ -109,7 +135,7 @@ defineProps<{
     <div class="menu">
       <button class="btn" @click="drawer"></button>
       <div style="flex: 1;">
-        Toolbar, {{ width }}, {{ height }}
+        MailAppViewSize: {{ width }}, {{ height }}
       </div>
     </div>
     <div class="main">

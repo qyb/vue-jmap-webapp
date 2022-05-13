@@ -301,6 +301,11 @@ is-core-module@^2.8.1:
   dependencies:
     has "^1.0.3"
 
+jmap-client-ts@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npmmirror.com/jmap-client-ts/-/jmap-client-ts-1.0.0.tgz#cd63ab1fa32de6063c3b6fc87038b85a1b409d53"
+  integrity sha512-qL31lYUpLAqrVFMaMsogorcAcpZRTSjWPwnxdl61mDNY9DINQvrKIkYCMstva4cxTbL1kQFG4aT8K9wOesrj7g==
+
 magic-string@^0.25.7:
   version "0.25.9"
   resolved "https://registry.npmmirror.com/magic-string/-/magic-string-0.25.9.tgz#de7f9faf91ef8a1c91d02c2e5314c8277dbcdd1c"
