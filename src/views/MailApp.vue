@@ -9,7 +9,8 @@ import {
 import MailView from './MailView.vue'
 import { Client } from 'jmap-client-ts/lib'
 import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
-import { IMailboxProperties } from 'jmap-client-ts/lib/types';
+import { IMailboxProperties } from 'jmap-client-ts/lib/types'
+import { $globalState } from '@/utils/global'
 
 const width = ref(0)
 const height = ref(0)
@@ -135,6 +136,7 @@ onMounted(() => {
   client.fetchSession().then(() => {
     let session = client.getSession()
     console.log("session: %o", session)
+    $globalState.client = client
     let accountId = client.getFirstAccountId()
     username.value = session.username
     console.log(`${accountId} ${login}`)

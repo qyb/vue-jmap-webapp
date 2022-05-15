@@ -1,48 +1,37 @@
-<script lang="ts">
+<script setup lang="ts">
 /*
   在 mini 模式下，MsgList 和 MsgContent 将共享同一个 View
   所以 List/Content 的数据都封装在这里完成
  */
-import { defineComponent } from 'vue'
+import { onMounted, computed } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
+import { $globalState } from '@/utils/global'
 
-export default defineComponent({
-  name: 'MailView',
+const props = defineProps<{
+  widthState: number
+}>()
 
-  props: {
-    widthState: {
-      type: Number,
-      required: true
-    },
-  },
-
-  data () {
-    return {
-    }
-  },
-
-  methods: {
-
-  },
-
-  mounted () {
-    console.log('MailView mounted Props.widthState:', this.widthState)
-  },
-
-  computed: {
-    showList () {
-      return this.widthState > MINI_STATE
-    },
-    msglistClass () {
-      return this.widthState == FULL_STATE ? 'msglist-full' : 'msglist-normal'
-    },
-  }
+onMounted(() => {
+  console.log('MailView mounted Props.widthState:', props.widthState)
 })
+
+const showList = computed((): boolean => {
+  return props.widthState > MINI_STATE
+})
+
+const msglistClass = computed((): string => {
+  return props.widthState == FULL_STATE ? 'msglist-full' : 'msglist-normal'
+})
+
+function foo () {
+  console.log($globalState)
+}
+
 </script>
 <template>
   <div class="mailview">
     <div :class="msglistClass" class="msglist" v-if="showList">
-      foo
+      <a @click.prevent="foo">foo</a>
     </div>
     <div class="msgcontent">bar</div>
   </div>
@@ -58,6 +47,9 @@ export default defineComponent({
 .msglist {
   background-color: #edf0f2;
   color: #344955;
+}
+.msglist a {
+  text-decoration: underline;
 }
 
 .msglist-normal {
