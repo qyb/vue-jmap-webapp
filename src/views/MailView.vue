@@ -12,7 +12,7 @@ const props = defineProps<{
 }>()
 
 onMounted(() => {
-  console.log('MailView mounted Props.widthState:', props.widthState)
+  console.log('MailView mounted Props.widthState:', props.widthState, $globalState.client)
 })
 
 const showList = computed((): boolean => {
@@ -23,15 +23,11 @@ const msglistClass = computed((): string => {
   return props.widthState == FULL_STATE ? 'msglist-full' : 'msglist-normal'
 })
 
-function foo () {
-  console.log($globalState)
-}
-
 </script>
 <template>
   <div class="mailview">
     <div :class="msglistClass" class="msglist" v-if="showList">
-      <a @click.prevent="foo">foo</a>
+      foo
     </div>
     <div class="msgcontent">bar</div>
   </div>
@@ -47,9 +43,6 @@ function foo () {
 .msglist {
   background-color: #edf0f2;
   color: #344955;
-}
-.msglist a {
-  text-decoration: underline;
 }
 
 .msglist-normal {

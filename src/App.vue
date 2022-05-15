@@ -42,7 +42,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <MailApp arg="mail"></MailApp>
+  <router-view/>
 </template>
 
 <style>
@@ -59,5 +59,8 @@ html, body {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+a {
+  text-decoration: underline;
 }
 </style>

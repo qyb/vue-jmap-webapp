@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
 import {
   getClientHeight, getClientWidth,
   MINI_STATE, COMPACT_STATE, NORMAL_STATE, FULL_STATE,
   MIN_FULL, MIN_NORMAL, MIN_COMPACT,
  } from '@/utils/screen';
 import MailView from './MailView.vue'
-import { Client } from 'jmap-client-ts/lib'
-import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
 import { IMailboxProperties } from 'jmap-client-ts/lib/types'
-import { $globalState } from '@/utils/global'
+import { $globalState, resetGlobalState } from '@/utils/global'
+
+const router = useRouter()
 
 const width = ref(0)
 const height = ref(0)
@@ -68,6 +70,11 @@ function onResize (ele: HTMLElement): void {
   }
 }
 
+function logout () {
+  resetGlobalState()
+  router.push({name: 'login'})
+}
+
 function drawer () {
   // 如果当前是 mini or compact, 点击 drawer 只能以浮层形式进出;
   // 如果当前是 normal or full, 点击 drawer 占据左侧宽度
@@ -113,35 +120,14 @@ onMounted(() => {
     setStateMini()
   }
 
-  /*
-    jmapweb:main.ts 将 jmap-client-ts 又做了一层封装
-    其中颇有一些值得借鉴的地方, 比如一次 HTTP 多个请求/响应的解析封装
-   */
-  let login = 'qyb'
-  let password = 'test'
-  let authorizationHeader = `Basic ${window.btoa(`${login}:${password}`)}`
-  const transport = new XmlHttpRequestTransport(() => {
-    let r = new XMLHttpRequest()
-    return r;
-  })
-  const client = new Client({
-    accessToken: '',
-    sessionUrl: '/jmap',
-    transport: transport,
-    httpHeaders: {
-      "Content-Type": "application/json",
-      Authorization: authorizationHeader
-    }
-  })
-  client.fetchSession().then(() => {
-    let session = client.getSession()
-    console.log("session: %o", session)
-    $globalState.client = client
-    let accountId = client.getFirstAccountId()
+  console.log($globalState.client)
+  if ($globalState.client) {
+    let session = $globalState.client.getSession()
+    let accountId = $globalState.client.getFirstAccountId()
     username.value = session.username
-    console.log(`${accountId} ${login}`)
+    console.log(`${accountId}`)
 
-    client.mailbox_get({ // 参考 jmapweb: Mail.svelte 参数
+    $globalState.client.mailbox_get({ // 参考 jmapweb: Mail.svelte 参数
       accountId: null,  // null 传递进去会自动使用 getFirstAccountId
       ids: null,
     }).then(result => {
@@ -154,11 +140,10 @@ onMounted(() => {
         })
       }
       console.log(knownBoxList)
+    }).catch(error => {
+      console.error(error.message)
     })
-  }).catch(error => {
-    // 可能是网络错误，也可能是认证失败
-    console.log(error.message)
-  })
+  }
 })
 
 defineProps<{
@@ -174,7 +159,9 @@ defineProps<{
       <div style="flex: 1;">
         MailAppViewSize: {{ width }}, {{ height }}
       </div>
-      <div style="margin-right: 4px;"> {{ username }}</div>
+      <div style="margin-right: 4px;">
+        <a @click="logout">logout({{ username }})</a>
+      </div>
     </div>
     <div class="main">
       <div :class="folderClass" class="folder">
