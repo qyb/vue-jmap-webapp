@@ -1,6 +1,6 @@
 import { Client } from 'jmap-client-ts/lib'
 
-export declare interface globalState {
+interface globalState {
   permission: number
   client?: Client
 }
@@ -13,3 +13,14 @@ export function resetGlobalState(): void {
   $globalState.permission = -1;
   $globalState.client = undefined
 }
+
+interface layoutElement {
+  ele: HTMLElement
+  handler: (ele: HTMLElement) => void
+}
+
+interface layoutElementMap {
+  [key: string]: layoutElement
+}
+
+export const $globalLayout: layoutElementMap = {}

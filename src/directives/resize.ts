@@ -1,15 +1,5 @@
 import type { DirectiveBinding, App } from 'vue'
-
-interface layoutElement {
-  ele: HTMLElement
-  handler: (ele: HTMLElement) => void
-}
-
-interface layoutElementMap {
-  [key: string]: layoutElement
-}
-
-const globalLayout: layoutElementMap = {}
+import { $globalLayout } from '@/utils/global'
 
 function mounted (el: HTMLElement, binding: DirectiveBinding) {
   const handler = binding.value
@@ -19,12 +9,12 @@ function mounted (el: HTMLElement, binding: DirectiveBinding) {
     console.error('layoutMounted Nokey')
     return
   }
-  if (key in globalLayout) {
+  if (key in $globalLayout) {
     console.error('layoutMounted Conflict')
     return
   }
 
-  globalLayout[key] = {
+  $globalLayout[key] = {
     ele: el,
     handler: handler
   }
@@ -37,7 +27,7 @@ function unmounted (el: HTMLElement, binding: DirectiveBinding) {
     console.error('layoutMounted Nokey')
     return
   }
-  delete globalLayout[key]
+  delete $globalLayout[key]
 }
 
 const Layout = {
@@ -45,21 +35,4 @@ const Layout = {
   unmounted
 }
 
-const layoutRegister = {
-  install: (app: App) => {
-    app.config.globalProperties.$layout = globalLayout
-  }
-}
-
-declare module 'vue' {
-  interface ComponentCustomProperties {
-    $layout: layoutElementMap
-  }
-}
-
-
-
-export {
-  Layout,
-  layoutRegister,
-}
+export { Layout }
