@@ -17,6 +17,7 @@ const router = useRouter()
 const width = ref(0)
 const height = ref(0)
 const username = ref('')
+const mailbox = ref('Inbox')
 
 // default define as normalview
 const layoutState = {
@@ -72,6 +73,8 @@ function onResize (ele: HTMLElement): void {
 
 function logout () {
   resetGlobalState()
+  const myStorage = window.localStorage
+  myStorage.clear()
   router.push({name: 'login'})
 }
 
@@ -92,6 +95,10 @@ function drawer () {
       folderClass.value = 'folder-hidden'
     }
   }
+}
+
+function switchMailbox (mb: string): void {
+  mailbox.value = mb
 }
 
 const knownBoxList: Array<{
@@ -120,12 +127,9 @@ onMounted(() => {
     setStateMini()
   }
 
-  console.log($globalState.client)
   if ($globalState.client) {
     let session = $globalState.client.getSession()
-    let accountId = $globalState.client.getFirstAccountId()
     username.value = session.username
-    console.log(`${accountId}`)
 
     $globalState.client.mailbox_get({ // 参考 jmapweb: Mail.svelte 参数
       accountId: null,  // null 传递进去会自动使用 getFirstAccountId
@@ -139,10 +143,12 @@ onMounted(() => {
           }
         })
       }
-      console.log(knownBoxList)
+      // console.log(knownBoxList)
     }).catch(error => {
       console.error(error.message)
     })
+  } else {
+    console.error('MailApp failure: %o', $globalState)
   }
 })
 
@@ -159,19 +165,24 @@ defineProps<{
       <div style="flex: 1;">
         MailAppViewSize: {{ width }}, {{ height }}
       </div>
-      <div style="margin-right: 4px;">
+      <div style="margin-right: 4px; cursor: pointer;">
         <a @click="logout">logout({{ username }})</a>
       </div>
     </div>
     <div class="main">
       <div :class="folderClass" class="folder">
-        <ul>
-          <li v-for="item in knownBoxList">
-            {{`${item.name}(${item.props?.unreadEmails})`}}
+        <ul class="list">
+          <li v-for="item in knownBoxList"
+          :class="item.name === mailbox ? 'focus-item':'list-item'"
+          style="cursor: pointer;"
+          @click.prevent="switchMailbox(item.name)"
+          >
+            <span>{{item.name}}</span>
+            <span>({{item.props?.unreadEmails}})</span>
           </li>
         </ul>
       </div>
-      <MailView :widthState="layoutState.widthState" />
+      <MailView :widthState="layoutState.widthState" :mailbox="mailbox" />
     </div>
   </div>
 </template>
@@ -251,5 +262,26 @@ defineProps<{
 .folder-full {
   width: 214px;
   max-width: 236px;
+}
+
+.list {
+  list-style-type: none;
+  text-align: left;
+  margin-right: 10px;
+  margin-left: 10px;
+  padding-inline-start: 0px;
+}
+.list-item {
+  background-color: #344955;
+  color: #b4c1cc;
+
+}
+.list-item:hover {
+  text-decoration: underline;
+  color: #faab1a;
+}
+.focus-item {
+  background-color: #faab1a;
+  color: #344955;
 }
 </style>

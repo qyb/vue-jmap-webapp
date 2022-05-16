@@ -9,10 +9,11 @@ import { $globalState } from '@/utils/global'
 
 const props = defineProps<{
   widthState: number
+  mailbox: string
 }>()
 
 onMounted(() => {
-  console.log('MailView mounted Props.widthState:', props.widthState, $globalState.client)
+  console.log('MailView mounted mailbox:', props.mailbox, $globalState.client)
 })
 
 const showList = computed((): boolean => {
