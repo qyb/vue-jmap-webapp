@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import { $globalState } from '@/utils/global'
@@ -14,12 +14,12 @@ const router = useRouter()
 const route = useRoute()
 const login = ref('')
 const password = ref('')
-function submit () {
+
+function fetchSession (authorizationHeader: string, isSubmit: boolean): void {
   /*
     jmapweb:main.ts 将 jmap-client-ts 又做了一层封装
     其中颇有一些值得借鉴的地方, 比如一次 HTTP 多个请求/响应的解析封装
    */
-  let authorizationHeader = `Basic ${window.btoa(`${login.value}:${password.value}`)}`
   const client = new Client({
     accessToken: '',
     sessionUrl: '/jmap',
@@ -39,6 +39,12 @@ function submit () {
       throw new Error("null capabilities!");
     }
 
+    if (isSubmit) { // LoginSubmit success, save localStorage
+      const myStorage = window.localStorage
+      myStorage.setItem('Authorization', authorizationHeader)
+    } else {
+      console.log('fetch session from localStorage')
+    }
     $globalState.client = client
     $globalState.permission = 0
     let redirect = route.query?.redirect as string
@@ -55,6 +61,20 @@ function submit () {
     console.error(error.message)
   })
 }
+
+function submit () {
+  let authorizationHeader = `Basic ${window.btoa(`${login.value}:${password.value}`)}`
+  fetchSession(authorizationHeader, true)
+}
+
+onMounted(() => {
+  // 尝试读取当前的 localStorage 看看是不是登录信息合法
+  const myStorage = window.localStorage
+  const authorizationHeader = localStorage.getItem('Authorization')
+  if (authorizationHeader) {
+    fetchSession(authorizationHeader, false)
+  }
+})
 </script>
 <template>
   <div>
