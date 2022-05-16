@@ -31,7 +31,14 @@ function submit () {
   })
   client.fetchSession().then(() => {
     let session = client.getSession()
-    console.log("session: %o", session)
+    let accountId = client.getFirstAccountId()
+
+    let accountCapabilities = session.accounts[accountId].accountCapabilities
+    console.log("Account Capabilities: %s %o", accountId, accountCapabilities)
+    if (null === accountCapabilities) {
+      throw new Error("null capabilities!");
+    }
+
     $globalState.client = client
     $globalState.permission = 0
     let redirect = route.query?.redirect as string
