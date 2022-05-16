@@ -3,7 +3,7 @@
   在 mini 模式下，MsgList 和 MsgContent 将共享同一个 View
   所以 List/Content 的数据都封装在这里完成
  */
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
 import { $globalState } from '@/utils/global'
 
@@ -12,10 +12,36 @@ const props = defineProps<{
   mailbox: string
 }>()
 
+function renderMailbox (id: string): void {
+  $globalState.client?.email_query({
+    accountId: null,
+    filter: {
+      "inMailbox": id
+    },
+    "sort": [
+        { "property": "receivedAt", "isAscending": false }
+    ],
+    "position": 0,
+    "limit": 10,
+    "calculateTotal": true
+  }).then(result => {
+    console.log(result)
+  })
+}
 onMounted(() => {
-  console.log('MailView mounted mailbox:', props.mailbox, $globalState.client)
+  if (props.mailbox !== 'foo-bar') {
+    console.log('dev-mode: render mailview for %s', props.mailbox)
+    renderMailbox(props.mailbox)
+  }
+  // console.log('MailView mounted mailbox:', props.mailbox, $globalState.client)
 })
 
+watch(
+  ()=>props.mailbox,
+  (newId, oldId) => {
+    renderMailbox(newId)
+  }
+)
 const showList = computed((): boolean => {
   return props.widthState > MINI_STATE
 })

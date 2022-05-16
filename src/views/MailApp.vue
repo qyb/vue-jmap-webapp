@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import {
@@ -17,7 +17,7 @@ const router = useRouter()
 const width = ref(0)
 const height = ref(0)
 const username = ref('')
-const mailbox = ref('Inbox')
+const mailboxId = ref('foo-bar')
 
 // default define as normalview
 const layoutState = {
@@ -97,20 +97,34 @@ function drawer () {
   }
 }
 
-function switchMailbox (mb: string): void {
-  mailbox.value = mb
+function switchMailbox (id: string): void {
+  mailboxId.value = id
 }
 
+//https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml
 const knownBoxList: Array<{
   name: string
+  id: string
   displayName?: string // i18n
   props?: IMailboxProperties
 }> = reactive([
-  {name: 'Inbox'},
-  {name: 'Drafts'},
-  {name: 'Sent'},
-  {name: 'Trash'},
+  {name: 'Inbox', id: ''},
+  {name: 'Drafts', id: ''},
+  {name: 'Sent', id: ''},
+  {name: 'Trash', id: ''},
+  {name: 'Junk', id: ''},
 ])
+const boxList = computed(() => {
+  return knownBoxList.filter((item) => {return item.id !== ''})
+})
+
+const knownRules: Array<string> = [
+  'inbox',
+  'drafts',
+  'sent',
+  'trash',
+  'junk',
+]
 
 onMounted(() => {
   const h = getClientHeight()
@@ -135,15 +149,33 @@ onMounted(() => {
       accountId: null,  // null 传递进去会自动使用 getFirstAccountId
       ids: null,
     }).then(result => {
+      console.log(result)
       let boxes = result.list
       for (let box of boxes) {
-        knownBoxList.forEach((item, index, array) => {
-          if (box.name == item.name) {
-            item.props = box
+        knownRules.forEach((item, index, array) => {
+          if (box.role == item) {
+            knownBoxList[index].props = box
+            knownBoxList[index].id = box.id
+            console.log('%s match role %s(%d)', box.name, item, index)
           }
         })
       }
-      // console.log(knownBoxList)
+
+      knownBoxList.forEach((item, index, array) => {
+        if (!item.props) {
+          for (let box of boxes) {
+            if (box.role == null) {
+              if (box.name == item.name) {
+                item.props = box
+                item.id = box.id
+              }
+            }
+          }
+        }
+      })
+
+      mailboxId.value = boxList.value[0].id
+      // console.log(mailboxId, knownBoxList)
     }).catch(error => {
       console.error(error.message)
     })
@@ -172,17 +204,20 @@ defineProps<{
     <div class="main">
       <div :class="folderClass" class="folder">
         <ul class="list">
-          <li v-for="item in knownBoxList"
-          :class="item.name === mailbox ? 'focus-item':'list-item'"
-          style="cursor: pointer;"
-          @click.prevent="switchMailbox(item.name)"
+          <li v-for="item in boxList" :key="item.id"
+            :class="item.id === mailboxId ? 'focus-item':'list-item'"
+            style="cursor: pointer;"
+            @click.prevent="switchMailbox(item.id)"
           >
             <span>{{item.name}}</span>
-            <span>({{item.props?.unreadEmails}})</span>
+            <span v-if="item.props && item.props.unreadThreads > 0"
+              style="float: right;">
+              ({{item.props?.unreadThreads}})
+            </span>
           </li>
         </ul>
       </div>
-      <MailView :widthState="layoutState.widthState" :mailbox="mailbox" />
+      <MailView :widthState="layoutState.widthState" :mailbox="mailboxId" />
     </div>
   </div>
 </template>
