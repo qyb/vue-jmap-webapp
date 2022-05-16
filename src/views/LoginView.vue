@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import { $globalState } from '@/utils/global'
-// import { Client } from 'jmap-client-ts/lib'
 import { JClient } from '@/utils/jclient'
 import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
 const transport = new XmlHttpRequestTransport(() => {
@@ -62,7 +61,7 @@ function submit () {
 onMounted(() => {
   // 尝试读取当前的 localStorage 看看是不是登录信息合法
   const myStorage = window.localStorage
-  const authorizationHeader = localStorage.getItem('Authorization')
+  const authorizationHeader = myStorage.getItem('Authorization')
   if (authorizationHeader) {
     fetchSession(authorizationHeader, false)
   }

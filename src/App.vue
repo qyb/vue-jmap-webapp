@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
-
-import MailApp from './views/MailApp.vue'
 import { $globalLayout } from '@/utils/global'
 
 // resize 事件处理有性能损失，需要想办法做一个限流阀 resizeThrottler
