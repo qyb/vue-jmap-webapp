@@ -11,13 +11,14 @@ import {
 import MailView from './MailView.vue'
 import { IMailboxProperties } from 'jmap-client-ts/lib/types'
 import { $globalState, resetGlobalState } from '@/utils/global'
+import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
 
 const router = useRouter()
 
 const width = ref(0)
 const height = ref(0)
 const username = ref('')
-const mailboxId = ref('foo-bar')
+const mailboxId = ref(PLACEHOLDER_MAILBOXID)
 
 // default define as normalview
 const layoutState = {
@@ -101,23 +102,20 @@ function switchMailbox (id: string): void {
   mailboxId.value = id
 }
 
-//https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml
-const knownBoxList: Array<{
+interface MailboxItem {
   name: string
   id: string
   displayName?: string // i18n
   props?: IMailboxProperties
-}> = reactive([
+}
+//https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml
+const knownBoxList: Array<MailboxItem> = [
   {name: 'Inbox', id: ''},
   {name: 'Drafts', id: ''},
   {name: 'Sent', id: ''},
   {name: 'Trash', id: ''},
   {name: 'Junk', id: ''},
-])
-const boxList = computed(() => {
-  return knownBoxList.filter((item) => {return item.id !== ''})
-})
-
+]
 const knownRules: Array<string> = [
   'inbox',
   'drafts',
@@ -125,6 +123,7 @@ const knownRules: Array<string> = [
   'trash',
   'junk',
 ]
+const boxList: Array<MailboxItem>  = reactive([])
 
 onMounted(() => {
   const h = getClientHeight()
@@ -156,7 +155,7 @@ onMounted(() => {
           if (box.role == item) {
             knownBoxList[index].props = box
             knownBoxList[index].id = box.id
-            console.log('%s match role %s(%d)', box.name, item, index)
+            console.log('%s(%s) match role %s', box.name, box.id, item)
           }
         })
       }
@@ -168,14 +167,22 @@ onMounted(() => {
               if (box.name == item.name) {
                 item.props = box
                 item.id = box.id
+                console.log('%s match name %s', box.id, item.name)
               }
             }
           }
         }
+        if (item.id && item.id !== '') {
+          boxList.push(item)
+        }
       })
 
-      mailboxId.value = boxList.value[0].id
-      // console.log(mailboxId, knownBoxList)
+      if (boxList.length > 0) {
+        mailboxId.value = boxList[0].id
+      } else {
+        console.error('no available mailbox')
+      }
+
     }).catch(error => {
       console.error(error.message)
     })

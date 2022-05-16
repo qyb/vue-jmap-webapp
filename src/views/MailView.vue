@@ -6,6 +6,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
 import { $globalState } from '@/utils/global'
+import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
 
 const props = defineProps<{
   widthState: number
@@ -29,7 +30,7 @@ function renderMailbox (id: string): void {
   })
 }
 onMounted(() => {
-  if (props.mailbox !== 'foo-bar') {
+  if (props.mailbox !== PLACEHOLDER_MAILBOXID) {
     console.log('dev-mode: render mailview for %s', props.mailbox)
     renderMailbox(props.mailbox)
   }

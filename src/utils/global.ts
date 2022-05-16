@@ -24,3 +24,5 @@ interface layoutElementMap {
 }
 
 export const $globalLayout: layoutElementMap = {}
+
+export const PLACEHOLDER_MAILBOXID = 'foo-bar'
