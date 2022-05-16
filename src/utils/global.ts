@@ -1,17 +1,21 @@
-import { Client } from 'jmap-client-ts/lib'
+// import { Client } from 'jmap-client-ts/lib'
+import { JClient } from '@/utils/jclient'
 
 interface globalState {
   permission: number
-  client?: Client
+  accountId: string | null
+  jclient?: JClient
 }
 
 export const $globalState: globalState = {
-  permission: -1
+  permission: -1,
+  accountId: null
 }
 
 export function resetGlobalState(): void {
-  $globalState.permission = -1;
-  $globalState.client = undefined
+  $globalState.permission = -1
+  $globalState.accountId = null
+  $globalState.jclient = undefined
 }
 
 interface layoutElement {

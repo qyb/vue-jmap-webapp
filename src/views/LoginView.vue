@@ -3,7 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import { $globalState } from '@/utils/global'
-import { Client } from 'jmap-client-ts/lib'
+// import { Client } from 'jmap-client-ts/lib'
+import { JClient } from '@/utils/jclient'
 import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
 const transport = new XmlHttpRequestTransport(() => {
   let r = new XMLHttpRequest()
@@ -16,22 +17,10 @@ const login = ref('')
 const password = ref('')
 
 function fetchSession (authorizationHeader: string, isSubmit: boolean): void {
-  /*
-    jmapweb:main.ts 将 jmap-client-ts 又做了一层封装
-    其中颇有一些值得借鉴的地方, 比如一次 HTTP 多个请求/响应的解析封装
-   */
-  const client = new Client({
-    accessToken: '',
-    sessionUrl: '/jmap',
-    transport: transport,
-    httpHeaders: {
-      "Content-Type": "application/json",
-      Authorization: authorizationHeader
-    }
-  })
-  client.fetchSession().then(() => {
-    let session = client.getSession()
-    let accountId = client.getFirstAccountId()
+  const jclient = new JClient(transport, authorizationHeader)
+  jclient.client.fetchSession().then(() => {
+    let session = jclient.client.getSession()
+    let accountId = jclient.client.getFirstAccountId()
 
     let accountCapabilities = session.accounts[accountId].accountCapabilities
     console.log("Account Capabilities: %s %o", accountId, accountCapabilities)
@@ -45,8 +34,11 @@ function fetchSession (authorizationHeader: string, isSubmit: boolean): void {
     } else {
       console.log('fetch session from localStorage')
     }
-    $globalState.client = client
+
+    $globalState.jclient = jclient
     $globalState.permission = 0
+    $globalState.accountId = accountId
+
     let redirect = route.query?.redirect as string
     let path = redirect ? redirect:'/app/mail'
     if (path == '/app/mail') {

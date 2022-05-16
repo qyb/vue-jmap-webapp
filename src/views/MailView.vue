@@ -14,27 +14,37 @@ const props = defineProps<{
 }>()
 
 function renderMailbox (id: string): void {
-  $globalState.client?.email_query({
-    accountId: null,
-    filter: {
-      "inMailbox": id
-    },
-    "sort": [
-        { "property": "receivedAt", "isAscending": false }
-    ],
-    "position": 0,
-    "limit": 10,
-    "calculateTotal": true
-  }).then(result => {
+  $globalState.jclient?.req([
+    ['Email/query', {
+        accountId: $globalState.accountId,
+        collapseThreads: true,
+        filter: { "inMailbox": id },
+        sort: [
+          { property: 'receivedAt', isAscending: false }
+        ],
+        position: 0,
+        limit: 50,
+        calculateTotal: true,
+      }, '0'],
+    ['Email/get', {
+        accountId: $globalState.accountId,
+        '#ids': { resultOf: '0', name: 'Email/query', path: '/ids' }
+      }, '1'],
+    ['Thread/get', {
+        accountId: $globalState.accountId,
+        '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
+      }, '2']
+    ]
+  ).then(result => {
     console.log(result)
   })
 }
+
 onMounted(() => {
   if (props.mailbox !== PLACEHOLDER_MAILBOXID) {
     console.log('dev-mode: render mailview for %s', props.mailbox)
     renderMailbox(props.mailbox)
   }
-  // console.log('MailView mounted mailbox:', props.mailbox, $globalState.client)
 })
 
 watch(
