@@ -3,7 +3,7 @@
   在 mini 模式下，MsgList 和 MsgContent 将共享同一个 View
   所以 List/Content 的数据都封装在这里完成
  */
-import { onMounted, computed, watch, reactive } from 'vue'
+import { onMounted, computed, watch, reactive, ref } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
 import { $globalState } from '@/utils/global'
 import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
@@ -11,7 +11,7 @@ import { IEmailAddress } from 'jmap-client-ts/lib/types';
 
 const props = defineProps<{
   widthState: number
-  mailbox: string
+  mailbox: {id: string, total: number}
 }>()
 
 const msgList: Array<{
@@ -22,12 +22,13 @@ const msgList: Array<{
   preview: string
   seen: boolean
 }> = reactive([])
-function renderMailbox (id: string): void {
+
+function renderMailbox (mailbox: {id: string, total: number}): void {
   $globalState.jclient?.req([
     ['Email/query', {
         accountId: $globalState.accountId,
         collapseThreads: true,
-        filter: { "inMailbox": id },
+        filter: { "inMailbox": mailbox.id },
         sort: [
           { property: 'receivedAt', isAscending: false }
         ],
@@ -67,17 +68,21 @@ function renderMailbox (id: string): void {
   })
 }
 
+const totalThreads = ref(0)
+
 onMounted(() => {
-  if (props.mailbox !== PLACEHOLDER_MAILBOXID) {
-    console.log('dev-mode: render mailview for %s', props.mailbox)
+  if (props.mailbox.id !== PLACEHOLDER_MAILBOXID) {
+    console.log('dev-mode: render mailview for %s', props.mailbox.id)
     renderMailbox(props.mailbox)
+    totalThreads.value = props.mailbox.total
   }
 })
 
 watch(
-  ()=>props.mailbox,
-  (newId, oldId) => {
-    renderMailbox(newId)
+  props.mailbox, // 现在 mailbox 参数直接是一个 reactive object, 无需 getter()
+  (newArg, oldArg) => {
+    renderMailbox(newArg)
+    totalThreads.value = newArg.total
   }
 )
 const showList = computed((): boolean => {
@@ -108,7 +113,7 @@ const msglistClass = computed((): string => {
           </div>
         </li>
       </ul>
-      <div>
+      <div class="pagination" v-if="totalThreads > 50">
         placeholder
       </div>
     </div>
@@ -135,6 +140,7 @@ const msglistClass = computed((): string => {
   margin-right: 0px;
   margin-left: 10px;
   margin-bottom: 4px;
+  margin-top: 4px;
 }
 .msglist ul li {
   text-align: left;
@@ -159,6 +165,10 @@ const msglistClass = computed((): string => {
 .preview {
   font-size: small;
   color: #4A6572; /* 600 */
+}
+.pagination {
+  border-top: 1px solid #344955;
+  height: 32px;
 }
 
 .msgcontent {

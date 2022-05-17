@@ -18,7 +18,7 @@ const router = useRouter()
 const width = ref(0)
 const height = ref(0)
 const username = ref('')
-const mailboxId = ref(PLACEHOLDER_MAILBOXID)
+const mailboxInfo = reactive({id: PLACEHOLDER_MAILBOXID, total: 0})
 
 // default define as normalview
 const layoutState = {
@@ -98,8 +98,9 @@ function drawer () {
   }
 }
 
-function switchMailbox (id: string): void {
-  mailboxId.value = id
+function switchMailbox (arg: MailboxItem): void {
+  mailboxInfo.id = arg.id
+  mailboxInfo.total = arg.props?.totalThreads as number
 }
 
 interface MailboxItem {
@@ -178,7 +179,8 @@ onMounted(() => {
       })
 
       if (boxList.length > 0) {
-        mailboxId.value = boxList[0].id
+        mailboxInfo.id = boxList[0].id
+        mailboxInfo.total = boxList[0].props?.totalThreads as number
       } else {
         console.error('no available mailbox')
       }
@@ -212,9 +214,9 @@ defineProps<{
       <div :class="folderClass" class="folder">
         <ul>
           <li v-for="item in boxList" :key="item.id"
-            :class="item.id === mailboxId ? 'focus-item':'list-item'"
+            :class="item.id === mailboxInfo.id ? 'focus-item':'list-item'"
             style="cursor: pointer;"
-            @click.prevent="switchMailbox(item.id)"
+            @click.prevent="switchMailbox(item)"
           >
             <span>{{item.name}}</span>
             <span v-if="item.props && item.props.unreadThreads > 0"
@@ -224,7 +226,7 @@ defineProps<{
           </li>
         </ul>
       </div>
-      <MailView :widthState="layoutState.widthState" :mailbox="mailboxId" />
+      <MailView :widthState="layoutState.widthState" :mailbox="mailboxInfo" />
     </div>
   </div>
 </template>
