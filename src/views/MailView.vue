@@ -195,15 +195,20 @@ const msglistClass = computed((): string => {
 }
 .subject-line {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   white-space:nowrap;
+  height: 19px;
+  line-height: 19px;
+  font-size: small;
 }
 .date-line {
   text-align: right;
+  font-size: x-small;
   margin-left: 6px;
 }
 .preview {
-  font-size: small;
+  font-size: x-small;
+  line-height: 17px;
   color: #4A6572; /* 600 */
 }
 .pagination {

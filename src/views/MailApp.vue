@@ -214,7 +214,8 @@ defineProps<{
       <div :class="folderClass" class="folder">
         <ul>
           <li v-for="item in boxList" :key="item.id"
-            :class="item.id === mailboxInfo.id ? 'focus-item':'list-item'"
+            class="list-item"
+            :class="item.id === mailboxInfo.id ? 'focus-item':'normal-item'"
             style="cursor: pointer;"
             @click.prevent="switchMailbox(item)"
           >
@@ -314,17 +315,24 @@ defineProps<{
   max-width: 236px;
 }
 
-.list-item {
+
+.normal-item {
   background-color: #344955;
   color: #b4c1cc;
-
 }
-.list-item:hover {
+.normal-item:hover {
   text-decoration: underline;
   color: #faab1a;
 }
 .focus-item {
   background-color: #faab1a;
   color: #344955;
+}
+.list-item {
+  height: 28px;
+  line-height: 28px;
+  font-size: large;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 </style>
