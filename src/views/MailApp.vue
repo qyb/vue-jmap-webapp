@@ -296,9 +296,11 @@ defineProps<{
   left: -198px;
   width: 198px;
   max-width: 198px;
+  height: calc(100% - 32px); /* 当 Drawer 弹出时的高度 */
   transition: all 0.3s;
 }
 .folder-hidden.open {
+  height: calc(100% - 32px); /* 当 Drawer 弹出时的高度 */
   left: 0px;
 }
 
