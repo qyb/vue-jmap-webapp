@@ -17,10 +17,9 @@ const props = defineProps<{
 
 const threadId = ref('') // 当前阅读的邮件会话
 
-// 以下两部分内容传参给 MsgList 组件
+// 以下三个变量传参给 MsgList 组件
 const totalThreads = ref(0)
 const msgList: MessageLIST = reactive([])
-
 const paginationData: MsgListPagination = reactive({
   prevPos: -1,
   nextPos: -1,
@@ -85,10 +84,7 @@ function switchPos (pos: number) {
   } else {console.log(pos)}
 }
 
-function readThread (id: string, index: number = -1) {
-  if (index >= 0) {
-    msgList[index].seen = true // TODO: write seen state back
-  }
+function readThread (id: string) {
   threadId.value = id
 }
 
@@ -106,6 +102,12 @@ watch(
   (newArg, oldArg) => {
     renderMailbox(newArg)
     totalThreads.value = newArg.total
+
+    if (!showList.value) { // MINI STATE
+      if (!showListInContent.value) {
+        showListInContent.value = true
+      }
+    }
   }
 )
 
@@ -117,7 +119,7 @@ function onWatch (state: number): void {
   showList.value = state > MINI_STATE
   msglistClass.value = state == FULL_STATE ? 'msglist-full' : 'msglist-normal'
 
-  // 其次判断 MsgContent 界面是否切换到 MsgList 组件
+  // 其次判断 MsgContent 界面是否展示 MsgList 组件
   if (showList.value) {
     if (showListInContent.value) {
       showListInContent.value = false
@@ -138,36 +140,10 @@ watch(
 </script>
 <template>
   <div class="mailview">
-    <div :class="msglistClass" class="msglist" v-if="showList">
-      <ul>
-        <li v-for="(item, index) in msgList" :key="item.threadId" style="margin-top: 10px;" @click="readThread(item.threadId, index)">
-          <div :style="item.seen ? 'font-weight: normal':'font-weight: bold'">
-            <div class="single-line">
-              {{item.from[0].name}}
-            </div>
-            <div class="subject-line">
-              <span class="single-line">{{item.subject}}</span>
-              <span class="date-line">{{item.receivedAt}}</span>
-            </div>
-          </div>
-          <div class="single-line preview">
-            {{item.preview}}
-          </div>
-        </li>
-      </ul>
-      <div class="pagination">
-        <span v-if="totalThreads > 50">
-          <button @click="switchPos(paginationData.prevPos)" :disabled="paginationData.prevPos<0">prev</button>
-        </span>
-        <span style="flex: 1;">
-          {{`${totalThreads > 50 ? paginationData.currList : ''}`}}
-          {{`${totalThreads} ${totalThreads > 1 ? 'Threads':'Thread'}`}}
-        </span>
-        <span v-if="totalThreads > 50">
-          <button @click="switchPos(paginationData.nextPos)" :disabled="paginationData.nextPos<0">next</button>
-        </span>
-      </div>
-    </div>
+    <MsglistView :msgList="msgList" :totalThreads="totalThreads" :paginationData="paginationData"
+      @page="switchPos"
+      @read="readThread"
+      :class="msglistClass" v-if="showList" />
 
     <div class="msgcontent">
       <MsglistView :msgList="msgList" :totalThreads="totalThreads" :paginationData="paginationData"
@@ -187,70 +163,6 @@ watch(
   flex-grow: 1;
   display: flex;
   flex-direction: row;
-}
-
-.msglist {
-  background-color: #edf0f2;
-  color: #232F34; /* 800 */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.msglist ul {
-  flex: 1;
-  overflow-y: auto;
-  margin-right: 0px;
-  margin-left: 10px;
-  margin-bottom: 4px;
-  margin-top: 4px;
-}
-.msglist ul li {
-  text-align: left;
-  margin-right: 4px;
-}
-
-.msglist-normal {
-  width: 350px;
-  max-width: 350px;
-}
-
-.msglist-full {
-  width: 376px;
-  max-width: 380px;
-}
-
-.single-line {
-  white-space:nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.subject-line {
-  display: flex;
-  justify-content: space-between;
-  white-space:nowrap;
-  height: 19px;
-  line-height: 19px;
-  font-size: small;
-}
-.date-line {
-  text-align: right;
-  font-size: x-small;
-  margin-left: 6px;
-}
-.preview {
-  font-size: x-small;
-  line-height: 17px;
-  color: #4A6572; /* 600 */
-}
-.pagination {
-  border-top: 1px solid #344955;
-  height: 32px;
-  line-height: 32px;
-  display: flex;
-  justify-content: space-between;
-  padding-left: 4px;
-  padding-right: 4px;
 }
 
 .msgcontent {
