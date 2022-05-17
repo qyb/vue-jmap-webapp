@@ -10,6 +10,7 @@ import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
 import { IEmailAddress } from 'jmap-client-ts/lib/types';
 import { fuzzyDatetime } from '@/utils/common'
 
+const threadId = ref('')
 const props = defineProps<{
   widthState: number
   mailbox: {id: string, total: number}
@@ -82,10 +83,15 @@ function renderMailbox (mailbox: {id: string, total: number}, pos: number = 0): 
   })
 }
 
-function switchPos(pos: number) {
+function switchPos (pos: number) {
   if (pos >= 0) {
     renderMailbox(props.mailbox, pos)
   } else {console.log(pos)}
+}
+
+function readThread (id: string, index: number) {
+  msgList[index].seen = true // TODO: write seen state back
+  threadId.value = id
 }
 
 const totalThreads = ref(0)
@@ -118,7 +124,7 @@ const msglistClass = computed((): string => {
   <div class="mailview">
     <div :class="msglistClass" class="msglist" v-if="showList">
       <ul>
-        <li v-for="item in msgList" :key="item.threadId" style="margin-top: 10px;">
+        <li v-for="(item, index) in msgList" :key="item.threadId" style="margin-top: 10px;" @click="readThread(item.threadId, index)">
           <div :style="item.seen ? 'font-weight: normal':'font-weight: bold'">
             <div class="single-line">
               {{item.from[0].name}}
@@ -146,7 +152,10 @@ const msglistClass = computed((): string => {
         </span>
       </div>
     </div>
-    <div class="msgcontent">bar</div>
+    <div class="msgcontent">
+      <div>ThreadsHead {{ threadId }}</div>
+      <div>Threadsbody</div>
+    </div>
   </div>
 </template>
 
