@@ -49,6 +49,10 @@ html, body {
   margin: 0;
 }
 
+body {
+  overscroll-behavior: none;
+}
+
 ul {
   list-style-type: none;
   text-align: left;
