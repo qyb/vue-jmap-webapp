@@ -48,6 +48,15 @@ html, body {
   height: 100%;
   margin: 0;
 }
+
+ul {
+  list-style-type: none;
+  text-align: left;
+  margin-right: 10px;
+  margin-left: 10px;
+  padding-inline-start: 0px;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

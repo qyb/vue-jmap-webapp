@@ -1,5 +1,5 @@
 import { Client } from 'jmap-client-ts/lib'
-import { IEmailQueryArguments, IInvocation, IInvocationName } from 'jmap-client-ts/lib/types'
+import { IEmailQueryArguments, IEmailGetResponse, IInvocationName } from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
 /*
   jmapweb:main.ts 将 jmap-client-ts 又做了一层封装
@@ -12,8 +12,10 @@ type JInvocation<ArgumentsType> = [
   arguments: ArgumentsType,
   methodCallId: string
 ]
+
 interface JEmailQueryArguments extends IEmailQueryArguments {
   collapseThreads?: boolean
+  properties?: Array<string>
 }
 interface JThreadQueryHelper {
   accountId: string,
@@ -24,6 +26,9 @@ interface JThreadQueryHelper {
   }
 }
 type JThreadQueryArguments = JEmailQueryArguments | JThreadQueryHelper
+
+type ErrorResponse = Array<string | {"type": string}>
+type JThreadQueryResponse = Array<JInvocation<IEmailGetResponse> | ErrorResponse>
 
 export class JClient {
   client: Client
@@ -56,13 +61,13 @@ export class JClient {
       ['urn:ietf:params:jmap:core', 'urn:ietf:params:jmap:mail']
   }
 
-  public req (requests: Array<JInvocation<JThreadQueryArguments>>):
-  Promise<Array<ResponseType>> {
+  // TODO: 这里的 requests 和 promise 日后需要继续扩充类型定义
+  public req (requests: JInvocation<JThreadQueryArguments>[]): Promise<IEmailGetResponse[]> {
     const session = this.client.getSession()
     return new Promise((accept, reject) => {
       this.transport.post<{
         sessionState: string
-        methodResponses: JInvocation<ResponseType>[]
+        methodResponses: JThreadQueryResponse
       }>(session.apiUrl, {
         using: this.getCapabilities(),
         methodCalls: requests
@@ -72,13 +77,14 @@ export class JClient {
         Authorization: this.accessToken == '' ?
           this.authorizationHeader : "Bearer " + this.accessToken
       }).then(value => {
-        const result: Array<ResponseType> = []
+        const result: Array<IEmailGetResponse> = []
         console.log('response sessionState: %s', value.sessionState)
         value.methodResponses.forEach((item, index, array) => {
           if (item[0] === 'error') {
             throw item[1]
+          } else {
+            result.push(item[1] as IEmailGetResponse)
           }
-          result.push(item[1])
         })
         accept(result)
       }, reason => {

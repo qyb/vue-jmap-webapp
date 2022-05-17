@@ -210,7 +210,7 @@ defineProps<{
     </div>
     <div class="main">
       <div :class="folderClass" class="folder">
-        <ul class="list">
+        <ul>
           <li v-for="item in boxList" :key="item.id"
             :class="item.id === mailboxId ? 'focus-item':'list-item'"
             style="cursor: pointer;"
@@ -306,13 +306,6 @@ defineProps<{
   max-width: 236px;
 }
 
-.list {
-  list-style-type: none;
-  text-align: left;
-  margin-right: 10px;
-  margin-left: 10px;
-  padding-inline-start: 0px;
-}
 .list-item {
   background-color: #344955;
   color: #b4c1cc;

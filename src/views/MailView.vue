@@ -3,16 +3,25 @@
   在 mini 模式下，MsgList 和 MsgContent 将共享同一个 View
   所以 List/Content 的数据都封装在这里完成
  */
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch, reactive } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
 import { $globalState } from '@/utils/global'
 import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
+import { IEmailAddress } from 'jmap-client-ts/lib/types';
 
 const props = defineProps<{
   widthState: number
   mailbox: string
 }>()
 
+const msgList: Array<{
+  threadId: string
+  from: IEmailAddress[]
+  subject: string
+  receivedAt: string
+  preview: string
+  seen: boolean
+}> = reactive([])
 function renderMailbox (id: string): void {
   $globalState.jclient?.req([
     ['Email/query', {
@@ -28,15 +37,31 @@ function renderMailbox (id: string): void {
       }, '0'],
     ['Email/get', {
         accountId: $globalState.accountId,
-        '#ids': { resultOf: '0', name: 'Email/query', path: '/ids' }
+        '#ids': { resultOf: '0', name: 'Email/query', path: '/ids' },
+        'properties': [ "threadId", "from", "subject", "receivedAt", "preview", "keywords" ]
       }, '1'],
-    ['Thread/get', {
-        accountId: $globalState.accountId,
-        '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
-      }, '2']
+    //['Thread/get', {
+    //    accountId: $globalState.accountId,
+    //    '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
+    //  }, '2'],
     ]
   ).then(result => {
-    console.log(result)
+    const list = result[1].list
+    list.forEach((item) => {
+      let seen = false
+      if (item.keywords && item.keywords.$seen) {
+        seen = true
+      }
+      msgList.push({
+        threadId: item.threadId,
+        from: item.from ? item.from : [],
+        subject: item.subject,
+        receivedAt: item.receivedAt.substring(10),
+        preview: item.preview,
+        seen: seen
+      })
+    })
+    // console.log(msgList)
   })
 }
 
@@ -65,7 +90,22 @@ const msglistClass = computed((): string => {
 <template>
   <div class="mailview">
     <div :class="msglistClass" class="msglist" v-if="showList">
-      foo
+      <ul>
+        <li v-for="item in msgList" :key="item.threadId" style="margin-top: 10px;">
+          <div :style="item.seen ? 'font-weight: normal':'font-weight: bold'">
+            <div>
+              {{item.from[0].name}}
+            </div>
+            <div style="display: flex;">
+              <span class="single-line">{{item.subject}}</span>
+              <span>{{item.receivedAt}}</span>
+            </div>
+          </div>
+          <div class="single-line">
+            {{item.preview}}
+          </div>
+        </li>
+      </ul>
     </div>
     <div class="msgcontent">bar</div>
   </div>
@@ -82,6 +122,9 @@ const msglistClass = computed((): string => {
   background-color: #edf0f2;
   color: #344955;
 }
+.msglist ul li {
+  text-align: left;
+}
 
 .msglist-normal {
   width: 350px;
@@ -91,6 +134,12 @@ const msglistClass = computed((): string => {
 .msglist-full {
   width: 376px;
   max-width: 380px;
+}
+
+.single-line {
+  white-space:nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .msgcontent {
