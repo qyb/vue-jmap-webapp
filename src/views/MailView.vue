@@ -47,6 +47,8 @@ function renderMailbox (id: string): void {
     ]
   ).then(result => {
     const list = result[1].list
+
+    msgList.length = 0
     list.forEach((item) => {
       let seen = false
       if (item.keywords && item.keywords.$seen) {

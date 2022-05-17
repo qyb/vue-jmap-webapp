@@ -78,7 +78,7 @@ export class JClient {
           this.authorizationHeader : "Bearer " + this.accessToken
       }).then(value => {
         const result: Array<IEmailGetResponse> = []
-        console.log('response sessionState: %s', value.sessionState)
+        // console.log('response sessionState: %s', value.sessionState)
         value.methodResponses.forEach((item, index, array) => {
           if (item[0] === 'error') {
             throw item[1]
