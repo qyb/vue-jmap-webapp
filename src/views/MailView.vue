@@ -23,7 +23,13 @@ const msgList: Array<{
   seen: boolean
 }> = reactive([])
 
-function renderMailbox (mailbox: {id: string, total: number}): void {
+const paginationData = reactive({
+  prevPos: -1,
+  nextPos: -1,
+  currList: '',
+})
+
+function renderMailbox (mailbox: {id: string, total: number}, pos: number = 0): void {
   $globalState.jclient?.req([
     ['Email/query', {
         accountId: $globalState.accountId,
@@ -32,7 +38,7 @@ function renderMailbox (mailbox: {id: string, total: number}): void {
         sort: [
           { property: 'receivedAt', isAscending: false }
         ],
-        position: 0,
+        position: pos,
         limit: 50,
         calculateTotal: true,
       }, '0'],
@@ -64,8 +70,19 @@ function renderMailbox (mailbox: {id: string, total: number}): void {
         seen: seen
       })
     })
+
+    const length = list.length
+    paginationData.currList = `${pos+1}-${pos+length},`
+    paginationData.prevPos = pos - 50
+    paginationData.nextPos = (pos + length == totalThreads.value) ? -1 : pos + 50
     // console.log(msgList)
   })
+}
+
+function switchPos(pos: number) {
+  if (pos >= 0) {
+    renderMailbox(props.mailbox, pos)
+  } else {console.log(pos)}
 }
 
 const totalThreads = ref(0)
@@ -113,8 +130,17 @@ const msglistClass = computed((): string => {
           </div>
         </li>
       </ul>
-      <div class="pagination" v-if="totalThreads > 50">
-        placeholder
+      <div class="pagination">
+        <span v-if="totalThreads > 50">
+          <button @click="switchPos(paginationData.prevPos)" :disabled="paginationData.prevPos<0">prev</button>
+        </span>
+        <span style="flex: 1;">
+          {{`${totalThreads > 50 ? paginationData.currList : ''}`}}
+          {{`${totalThreads} ${totalThreads > 1 ? 'Threads':'Thread'}`}}
+        </span>
+        <span v-if="totalThreads > 50">
+          <button @click="switchPos(paginationData.nextPos)" :disabled="paginationData.nextPos<0">next</button>
+        </span>
       </div>
     </div>
     <div class="msgcontent">bar</div>
@@ -133,9 +159,11 @@ const msglistClass = computed((): string => {
   color: #232F34; /* 800 */
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
 }
 
 .msglist ul {
+  flex: 1;
   overflow-y: auto;
   margin-right: 0px;
   margin-left: 10px;
@@ -169,6 +197,11 @@ const msglistClass = computed((): string => {
 .pagination {
   border-top: 1px solid #344955;
   height: 32px;
+  line-height: 32px;
+  display: flex;
+  justify-content: space-between;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 .msgcontent {
