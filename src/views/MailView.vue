@@ -3,29 +3,25 @@
   在 mini 模式下，MsgList 和 MsgContent 将共享同一个 View
   所以 List/Content 的数据都封装在这里完成
  */
-import { onMounted, computed, watch, reactive, ref } from 'vue'
+import { onMounted, watch, reactive, ref } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
 import { $globalState } from '@/utils/global'
-import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
-import { IEmailAddress } from 'jmap-client-ts/lib/types';
+import { PLACEHOLDER_MAILBOXID, MessageLIST, MsgListPagination } from '@/utils/global'
 import { fuzzyDatetime } from '@/utils/common'
+import MsglistView from '@/components/MsgList.vue'
 
-const threadId = ref('')
 const props = defineProps<{
   widthState: number
   mailbox: {id: string, total: number}
 }>()
 
-const msgList: Array<{
-  threadId: string
-  from: IEmailAddress[]
-  subject: string
-  receivedAt: string
-  preview: string
-  seen: boolean
-}> = reactive([])
+const threadId = ref('') // 当前阅读的邮件会话
 
-const paginationData = reactive({
+// 以下两部分内容传参给 MsgList 组件
+const totalThreads = ref(0)
+const msgList: MessageLIST = reactive([])
+
+const paginationData: MsgListPagination = reactive({
   prevPos: -1,
   nextPos: -1,
   currList: '',
@@ -89,16 +85,17 @@ function switchPos (pos: number) {
   } else {console.log(pos)}
 }
 
-function readThread (id: string, index: number) {
-  msgList[index].seen = true // TODO: write seen state back
+function readThread (id: string, index: number = -1) {
+  if (index >= 0) {
+    msgList[index].seen = true // TODO: write seen state back
+  }
   threadId.value = id
 }
 
-const totalThreads = ref(0)
-
 onMounted(() => {
   if (props.mailbox.id !== PLACEHOLDER_MAILBOXID) {
-    console.log('dev-mode: render mailview for %s', props.mailbox.id)
+    console.log('dev-mode: render mailview for %s, with %d', props.mailbox.id, props.widthState)
+    onWatch(props.widthState)
     renderMailbox(props.mailbox)
     totalThreads.value = props.mailbox.total
   }
@@ -111,13 +108,32 @@ watch(
     totalThreads.value = newArg.total
   }
 )
-const showList = computed((): boolean => {
-  return props.widthState > MINI_STATE
-})
 
-const msglistClass = computed((): string => {
-  return props.widthState == FULL_STATE ? 'msglist-full' : 'msglist-normal'
-})
+const showList = ref(true)
+const msglistClass = ref('msglist-full')
+const showListInContent = ref(false)
+function onWatch (state: number): void {
+  // 首先修改 MsgList 的样式
+  showList.value = state > MINI_STATE
+  msglistClass.value = state == FULL_STATE ? 'msglist-full' : 'msglist-normal'
+
+  // 其次判断 MsgContent 界面是否切换到 MsgList 组件
+  if (showList.value) {
+    if (showListInContent.value) {
+      showListInContent.value = false
+    }
+  } else {
+    if (threadId.value == '') { // 此时 MsgContent 是占位内容
+      showListInContent.value = true
+    }
+  }
+}
+watch(
+  () => props.widthState,
+  (newState, oldState) => {
+    onWatch(newState)
+  }
+)
 
 </script>
 <template>
@@ -152,9 +168,16 @@ const msglistClass = computed((): string => {
         </span>
       </div>
     </div>
+
     <div class="msgcontent">
-      <div>ThreadsHead {{ threadId }}</div>
-      <div>Threadsbody</div>
+      <MsglistView :msgList="msgList" :totalThreads="totalThreads" :paginationData="paginationData"
+        @page="switchPos"
+        @read="readThread"
+        v-if="showListInContent" />
+      <div v-else>
+        <div>ThreadsHead {{ threadId }}</div>
+        <div>Threadsbody</div>
+      </div>
     </div>
   </div>
 </template>
@@ -234,5 +257,6 @@ const msglistClass = computed((): string => {
   flex-grow: 1;
   background-color: #fefefe;
   color: #344955;
+  width: 0; /* 防止被子元素撑出横向滚动条 */
 }
 </style>

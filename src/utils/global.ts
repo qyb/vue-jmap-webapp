@@ -1,4 +1,4 @@
-// import { Client } from 'jmap-client-ts/lib'
+import { IEmailAddress } from 'jmap-client-ts/lib/types'
 import { JClient } from '@/utils/jclient'
 
 interface globalState {
@@ -30,3 +30,17 @@ interface layoutElementMap {
 export const $globalLayout: layoutElementMap = {}
 
 export const PLACEHOLDER_MAILBOXID = 'foo-bar'
+
+export declare type MessageLIST = Array<{
+  threadId: string
+  from: IEmailAddress[]
+  subject: string
+  receivedAt: string
+  preview: string
+  seen: boolean
+}>
+export declare type MsgListPagination = {
+  prevPos: number,
+  nextPos: number,
+  currList: string,
+}
