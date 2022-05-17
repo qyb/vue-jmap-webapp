@@ -8,6 +8,7 @@ import { MINI_STATE, FULL_STATE } from '@/utils/screen';
 import { $globalState } from '@/utils/global'
 import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
 import { IEmailAddress } from 'jmap-client-ts/lib/types';
+import { fuzzyDatetime } from '@/utils/common'
 
 const props = defineProps<{
   widthState: number
@@ -30,6 +31,7 @@ const paginationData = reactive({
 })
 
 function renderMailbox (mailbox: {id: string, total: number}, pos: number = 0): void {
+  const now = (new Date()).getTime()
   $globalState.jclient?.req([
     ['Email/query', {
         accountId: $globalState.accountId,
@@ -61,11 +63,12 @@ function renderMailbox (mailbox: {id: string, total: number}, pos: number = 0): 
       if (item.keywords && item.keywords.$seen) {
         seen = true
       }
+      const datetime = new Date(item.receivedAt)
       msgList.push({
         threadId: item.threadId,
         from: item.from ? item.from : [],
         subject: item.subject,
-        receivedAt: item.receivedAt.substring(10),
+        receivedAt: fuzzyDatetime(now, datetime),
         preview: item.preview,
         seen: seen
       })
@@ -117,12 +120,12 @@ const msglistClass = computed((): string => {
       <ul>
         <li v-for="item in msgList" :key="item.threadId" style="margin-top: 10px;">
           <div :style="item.seen ? 'font-weight: normal':'font-weight: bold'">
-            <div>
+            <div class="single-line">
               {{item.from[0].name}}
             </div>
-            <div style="display: flex;">
+            <div class="subject-line">
               <span class="single-line">{{item.subject}}</span>
-              <span>{{item.receivedAt}}</span>
+              <span class="date-line">{{item.receivedAt}}</span>
             </div>
           </div>
           <div class="single-line preview">
@@ -189,6 +192,15 @@ const msglistClass = computed((): string => {
   white-space:nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.subject-line {
+  display: flex;
+  justify-content: flex-end;
+  white-space:nowrap;
+}
+.date-line {
+  text-align: right;
+  margin-left: 6px;
 }
 .preview {
   font-size: small;
