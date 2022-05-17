@@ -52,8 +52,6 @@ html, body {
 ul {
   list-style-type: none;
   text-align: left;
-  margin-right: 10px;
-  margin-left: 10px;
   padding-inline-start: 0px;
 }
 

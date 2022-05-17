@@ -103,11 +103,14 @@ const msglistClass = computed((): string => {
               <span>{{item.receivedAt}}</span>
             </div>
           </div>
-          <div class="single-line">
+          <div class="single-line preview">
             {{item.preview}}
           </div>
         </li>
       </ul>
+      <div>
+        placeholder
+      </div>
     </div>
     <div class="msgcontent">bar</div>
   </div>
@@ -122,10 +125,20 @@ const msglistClass = computed((): string => {
 
 .msglist {
   background-color: #edf0f2;
-  color: #344955;
+  color: #232F34; /* 800 */
+  display: flex;
+  flex-direction: column;
+}
+
+.msglist ul {
+  overflow-y: auto;
+  margin-right: 0px;
+  margin-left: 10px;
+  margin-bottom: 4px;
 }
 .msglist ul li {
   text-align: left;
+  margin-right: 4px;
 }
 
 .msglist-normal {
@@ -142,6 +155,10 @@ const msglistClass = computed((): string => {
   white-space:nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.preview {
+  font-size: small;
+  color: #4A6572; /* 600 */
 }
 
 .msgcontent {

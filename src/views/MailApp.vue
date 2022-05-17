@@ -258,6 +258,7 @@ defineProps<{
   flex-grow: 1;
   display: flex;
   flex-direction: row;
+  height: calc(100% - 32px); /* 去掉顶部 menu 的高度 */
 }
 
 .appbar {
@@ -281,12 +282,15 @@ defineProps<{
   background-color: #344955;
   color: #b4c1cc;
 }
+.folder ul {
+  margin-right: 10px;
+  margin-left: 10px;
+}
 
 .folder-hidden {
   position: absolute;
   z-index:1000;
   box-shadow:5px 0px 10px rgba(0,0,0,.2);
-  height: calc(100% - 32px); /* 去掉顶部 menu 的高度 */
   left: -198px;
   width: 198px;
   max-width: 198px;
