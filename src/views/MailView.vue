@@ -28,31 +28,7 @@ const paginationData: MsgListPagination = reactive({
 
 function renderMailbox (mailbox: {id: string, total: number}, pos: number = 0): void {
   const now = (new Date()).getTime()
-  $globalState.jclient?.req([
-    ['Email/query', {
-        accountId: $globalState.accountId,
-        collapseThreads: true,
-        filter: { "inMailbox": mailbox.id },
-        sort: [
-          { property: 'receivedAt', isAscending: false }
-        ],
-        position: pos,
-        limit: 50,
-        calculateTotal: true,
-      }, '0'],
-    ['Email/get', {
-        accountId: $globalState.accountId,
-        '#ids': { resultOf: '0', name: 'Email/query', path: '/ids' },
-        'properties': [ "threadId", "from", "subject", "receivedAt", "preview", "keywords" ]
-      }, '1'],
-    //['Thread/get', {
-    //    accountId: $globalState.accountId,
-    //    '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
-    //  }, '2'],
-    ]
-  ).then(result => {
-    const list = result[1].list
-
+  $globalState.jclient?.msglist_get($globalState.accountId, mailbox.id, pos).then(list=>{
     msgList.length = 0
     list.forEach((item) => {
       let seen = false

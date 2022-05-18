@@ -1,5 +1,5 @@
 import { Client } from 'jmap-client-ts/lib'
-import { IEmailQueryArguments, IEmailGetResponse, IInvocationName } from 'jmap-client-ts/lib/types'
+import { IEmailQueryArguments, IEmailGetResponse, IInvocationName, IEmailProperties } from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
 /*
   jmapweb:main.ts 将 jmap-client-ts 又做了一层封装
@@ -64,7 +64,7 @@ export class JClient {
   // TODO: 这里的 requests 和 promise 日后需要继续扩充类型定义
   public req (requests: JInvocation<JThreadQueryArguments>[]): Promise<IEmailGetResponse[]> {
     const session = this.client.getSession()
-    return new Promise((accept, reject) => {
+    return new Promise((resolve, reject) => {
       this.transport.post<{
         sessionState: string
         methodResponses: JThreadQueryResponse
@@ -86,11 +86,41 @@ export class JClient {
             result.push(item[1] as IEmailGetResponse)
           }
         })
-        accept(result)
+        resolve(result)
       }, reason => {
         reject(reason)
       })
     })
   }
 
+  public msglist_get (accountId: string|null, mailboxId: string, pos: number): Promise<IEmailProperties[]> {
+    return new Promise((resolve, reject) => {
+      this.req([
+        ['Email/query', {
+          accountId: accountId,
+          collapseThreads: true,
+          filter: { "inMailbox": mailboxId },
+          sort: [
+            { property: 'receivedAt', isAscending: false }
+          ],
+          position: pos,
+          limit: 50,
+          calculateTotal: true,
+        }, '0'],
+        ['Email/get', {
+          accountId: accountId,
+          '#ids': { resultOf: '0', name: 'Email/query', path: '/ids' },
+          'properties': [ "threadId", "from", "subject", "receivedAt", "preview", "keywords" ]
+        }, '1'],
+      //['Thread/get', {
+      //  accountId: accountId,
+      //  '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
+      //}, '2'],
+      ]).then(value => {
+        resolve(value[1].list)
+      }, reason => {
+        reject(reason)
+      })
+    })
+  }
 }
