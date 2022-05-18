@@ -4,7 +4,6 @@ import { MessageLIST, MsgListPagination } from '@/utils/global'
   基本思路是，网络操作在父组件进行
   即: emit->MailView->props/MsgList
  */
-import { reactive, defineEmits } from 'vue'
 const emit = defineEmits<{
   (e: 'read', id: string): void
   (e: 'page', pos: number): void
