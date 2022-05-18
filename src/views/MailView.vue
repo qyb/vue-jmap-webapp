@@ -86,6 +86,9 @@ function switchPos (pos: number) {
 
 function readThread (id: string) {
   threadId.value = id
+  if (!showList.value) {
+    showListInContent.value = !showListInContent.value
+  }
 }
 
 onMounted(() => {
@@ -151,7 +154,10 @@ watch(
         @read="readThread"
         v-if="showListInContent" />
       <div v-else>
-        <div>ThreadsHead {{ threadId }}</div>
+        <div class="thread-header">
+          <span v-if="!showList"><button @click="showListInContent=!showListInContent">back</button></span>
+          <span style="flex: 1;">ThreadsHead {{ threadId }}</span>
+        </div>
         <div>Threadsbody</div>
       </div>
     </div>
@@ -170,5 +176,14 @@ watch(
   background-color: #fefefe;
   color: #344955;
   width: 0; /* 防止被子元素撑出横向滚动条 */
+}
+
+.thread-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 24px;
+  border-bottom: 1px solid #344955;
 }
 </style>
