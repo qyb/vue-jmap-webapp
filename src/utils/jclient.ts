@@ -133,7 +133,7 @@ export class JClient {
     })
   }
 
-  public thread_get (accountId: string|null, threadId: string): Promise {
+  public thread_get (accountId: string|null, threadId: string): Promise<IEmailProperties[]> {
     return new Promise((resolve, reject) => {
       this.req([
         ['Thread/get', {

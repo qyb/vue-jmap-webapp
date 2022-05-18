@@ -44,3 +44,15 @@ export declare type MsgListPagination = {
   nextPos: number,
   currList: string,
 }
+
+export declare type BodyMixed = Array<{
+  partId: string
+  value: string
+}>
+export declare type ThreadsContent = Array<{
+  msgId: string
+  from: IEmailAddress[]
+  receivedAt: string
+  preview: string
+  body: BodyMixed
+}>

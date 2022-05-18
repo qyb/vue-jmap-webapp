@@ -6,7 +6,10 @@
 import { onMounted, watch, reactive, ref } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
 import { $globalState } from '@/utils/global'
-import { PLACEHOLDER_MAILBOXID, MessageLIST, MsgListPagination } from '@/utils/global'
+import { PLACEHOLDER_MAILBOXID,
+  MessageLIST, MsgListPagination,
+  ThreadsContent, BodyMixed,
+} from '@/utils/global'
 import { fuzzyDatetime } from '@/utils/common'
 import MsglistView from '@/components/MsgList.vue'
 
@@ -60,17 +63,35 @@ function switchPos (pos: number) {
   } else {console.log(pos)}
 }
 
-const body = ref('')
+const msgContents:ThreadsContent = reactive([])
 function readThread (id: string) {
   threadId.value = id
   if (!showList.value) {
     showListInContent.value = !showListInContent.value
   }
   $globalState.jclient?.thread_get($globalState.accountId, id).then(list => {
-    console.log(list)
-    const htmlBodyPartId = list[0].htmlBody[0].partId
-    body.value = list[0].bodyValues[htmlBodyPartId].value
-    console.log(body)
+    msgContents.length = 0
+    list.forEach((item, index, array) => {
+      const body:BodyMixed = []
+      item.htmlBody?.forEach((value) => {
+        const htmlBodyPartId = value.partId
+        if (htmlBodyPartId && item.bodyValues &&
+        htmlBodyPartId in item.bodyValues) {
+          body.push({
+            partId: htmlBodyPartId,
+            value: item.bodyValues[htmlBodyPartId].value,
+          })
+        }
+      })
+      msgContents.push({
+        msgId: item.id,
+        from: item.from ? item.from: [],
+        receivedAt: item.receivedAt,
+        preview: item.preview,
+        body: body
+      })
+    })
+    console.log(msgContents)
   })
 }
 
@@ -141,7 +162,10 @@ watch(
           <span v-if="!showList"><button @click="showListInContent=!showListInContent">back</button></span>
           <span style="flex: 1;">ThreadsHead {{ threadId }}</span>
         </div>
-        <div v-html="body" style="width: 100%"></div>
+        <div v-for="(item, index) in msgContents" :key="item.msgId">
+          <div>emailHeader...</div>
+          <div v-for="body in item.body" :key="body.partId" v-html="body.value"></div>
+        </div>
       </div>
     </div>
   </div>
