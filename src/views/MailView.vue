@@ -60,11 +60,18 @@ function switchPos (pos: number) {
   } else {console.log(pos)}
 }
 
+const body = ref('')
 function readThread (id: string) {
   threadId.value = id
   if (!showList.value) {
     showListInContent.value = !showListInContent.value
   }
+  $globalState.jclient?.thread_get($globalState.accountId, id).then(list => {
+    console.log(list)
+    const htmlBodyPartId = list[0].htmlBody[0].partId
+    body.value = list[0].bodyValues[htmlBodyPartId].value
+    console.log(body)
+  })
 }
 
 onMounted(() => {
@@ -134,7 +141,7 @@ watch(
           <span v-if="!showList"><button @click="showListInContent=!showListInContent">back</button></span>
           <span style="flex: 1;">ThreadsHead {{ threadId }}</span>
         </div>
-        <div>Threadsbody</div>
+        <div v-html="body" style="width: 100%"></div>
       </div>
     </div>
   </div>
@@ -152,6 +159,7 @@ watch(
   background-color: #fefefe;
   color: #344955;
   width: 0; /* 防止被子元素撑出横向滚动条 */
+  overflow-y: auto;
 }
 
 .thread-header {

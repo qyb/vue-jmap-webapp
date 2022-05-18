@@ -1,5 +1,9 @@
 import { Client } from 'jmap-client-ts/lib'
-import { IEmailQueryArguments, IEmailGetResponse, IInvocationName, IEmailProperties } from 'jmap-client-ts/lib/types'
+import {
+  IInvocationName,
+  IGetArguments, IEntityProperties,
+  IEmailQueryArguments, IEmailGetArguments, IEmailGetResponse, IEmailProperties,
+} from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
 /*
   jmapweb:main.ts 将 jmap-client-ts 又做了一层封装
@@ -7,7 +11,7 @@ import { Transport } from 'jmap-client-ts/lib/utils/transport';
  */
 
 type JInvocationName = IInvocationName | 'Thread/get'
-type JInvocation<ArgumentsType> = [
+export type JInvocation<ArgumentsType> = [
   name: JInvocationName,
   arguments: ArgumentsType,
   methodCallId: string
@@ -26,6 +30,11 @@ interface JThreadQueryHelper {
   }
 }
 type JThreadQueryArguments = JEmailQueryArguments | JThreadQueryHelper
+
+export type JArguments =
+  | IGetArguments<IEntityProperties>  // 似乎如果直接用 IArguments 无法推导出 type|null 中的 null 类型，怀疑是 VSCode 的 bug
+  | IEmailGetArguments                // TODO: req 只需要有一个抽象接口 IGetArguments<IEntityProperties> 就可以，将来想办法去掉这里的定义
+  | JThreadQueryArguments
 
 type ErrorResponse = Array<string | {"type": string}>
 type JThreadQueryResponse = Array<JInvocation<IEmailGetResponse> | ErrorResponse>
@@ -62,15 +71,15 @@ export class JClient {
   }
 
   // TODO: 这里的 requests 和 promise 日后需要继续扩充类型定义
-  public req (requests: JInvocation<JThreadQueryArguments>[]): Promise<IEmailGetResponse[]> {
+  public req (requests: JInvocation<JArguments>[]): Promise<IEmailGetResponse[]> {
     const session = this.client.getSession()
     return new Promise((resolve, reject) => {
       this.transport.post<{
         sessionState: string
         methodResponses: JThreadQueryResponse
-      }>(session.apiUrl, {
+      }>(session.apiUrl, { // 相比较 jmap-client-ts 的 IRequest 类型, 这里拆解出来了
         using: this.getCapabilities(),
-        methodCalls: requests
+        methodCalls: requests // 相当于 jmap-client-ts 的 IInvocation<IArguments>[] 类型
       }, {
         "Accept": 'application/json;jmapVersion=rfc-8621',
         "Content-Type": "application/json",
@@ -116,6 +125,35 @@ export class JClient {
       //  accountId: accountId,
       //  '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
       //}, '2'],
+      ]).then(value => {
+        resolve(value[1].list)
+      }, reason => {
+        reject(reason)
+      })
+    })
+  }
+
+  public thread_get (accountId: string|null, threadId: string): Promise {
+    return new Promise((resolve, reject) => {
+      this.req([
+        ['Thread/get', {
+          accountId: accountId,
+          ids: [threadId]
+        }, '0'],
+        ['Email/get', {
+          accountId: accountId,
+          '#ids': {
+            name: 'Thread/get',
+            path: '/list/*/emailIds',
+            resultOf: '0'
+          },
+          "properties": [ "threadId", "mailboxIds", "from", "subject",
+            "receivedAt", "header:List-POST:asURLs",
+            "htmlBody", "bodyValues"],
+          "bodyProperties": [ "partId", "blobId", "size", "type" ],
+          "fetchHTMLBodyValues": true,
+          // "maxBodyValueBytes": 256
+        }, '1']
       ]).then(value => {
         resolve(value[1].list)
       }, reason => {
