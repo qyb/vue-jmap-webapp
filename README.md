@@ -2,7 +2,7 @@
 
 a JMAP webmail by vue3/typescript.
 
-It's try to implement a responsive layout likes Outlook Web App. [screen capture video](https://youtu.be/jOY5z8KJYxw)
+It was trying to implement a responsive layout/UI likes Outlook Web App. [screen capture video](https://youtu.be/jOY5z8KJYxw)
 
 Now it's at an early stage with a few functions: login(auth), list mailboxes, list threads, read message.
 
