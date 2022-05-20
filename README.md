@@ -2,9 +2,34 @@
 
 a JMAP webmail by vue3/typescript.
 
-It's try to implement a responsive layout likes Outlook Web App.
+It's try to implement a responsive layout likes Outlook Web App. Now it's at an early stage with a few functions: login(auth), list mailboxes, list threads, read message.
 
-## Howto Build: Vue 3 + TypeScript + Vite
+## a full-functional webmail need to be implemented
+
+1. Message Read
+  * threads UI
+  * attachment download
+
+2. Message Operation
+  * create mailbox
+  * move/delete mail
+
+3. Send Message
+  * compose UI
+  * reply/forward
+  * connect submission service
+
+4. Search & Tag
+  * search UI
+  * server-side sieve
+
+5. Web Push & WebApp state
+
+6. Contact
+
+7. More..
+
+## Howto build: Vue 3 + TypeScript + Vite
 
 It's a vue3 project, and depends vite as the dev/build server.
 
