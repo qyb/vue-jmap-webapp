@@ -2,30 +2,34 @@
 
 a JMAP webmail by vue3/typescript.
 
-It's try to implement a responsive layout likes Outlook Web App. Now it's at an early stage with a few functions: login(auth), list mailboxes, list threads, read message.
+It's try to implement a responsive layout likes Outlook Web App. [screen capture video](https://youtu.be/jOY5z8KJYxw)
 
-## a full-functional webmail need to be implemented
+Now it's at an early stage with a few functions: login(auth), list mailboxes, list threads, read message.
 
-1. Message Read
-  * threads UI
-  * attachment download
+## a full-functional webmail need to be implemented (development schedule)
 
-2. Message Operation
-  * create mailbox
-  * move/delete mail
+0. Prepare a demo-site (2022 May)
 
-3. Send Message
-  * compose UI
-  * reply/forward
-  * connect submission service
+1. Message Read (2022 Jun)
+    * threads UI
+    * attachment download
 
-4. Search & Tag
-  * search UI
-  * server-side sieve
+2. Message Operation (2022 Jun)
+    * create mailbox
+    * move/delete mail
 
-5. Web Push & WebApp state
+3. Send Message (2022 Jul)
+    * compose UI
+    * reply/forward
+    * connect submission service
 
-6. Contact
+4. Search & Tag (2022 Aug)
+    * search UI
+    * server-side sieve
+
+5. Web Push & WebApp state (2022 Aug)
+
+6. Contact (2022 Sep)
 
 7. More..
 
