@@ -14,6 +14,7 @@ const router = useRouter()
 const route = useRoute()
 const login = ref('')
 const password = ref('')
+const tips = ref('')
 
 function fetchSession (authorizationHeader: string, isSubmit: boolean): void {
   const jclient = new JClient(transport, authorizationHeader)
@@ -65,20 +66,30 @@ onMounted(() => {
   if (authorizationHeader) {
     fetchSession(authorizationHeader, false)
   }
+  if (import.meta.env.MODE == 'demo') {
+    tips.value = 'Demo Account: inbox@rubyfish.app, Password: inbox'
+  } else if (import.meta.env.MODE == 'development') {
+    tips.value = 'development site'
+  }
 })
 </script>
 <template>
   <div>
-    <form @submit.prevent="submit">
-      <p>
-        LoginName: <input type="text" v-model="login" />
-      </p>
-      <p>
-        Password: <input type="password" v-model="password" />
-      </p>
-      <p>
-        <input type="submit" />
-      </p>
-    </form>
+    <div>
+      <form @submit.prevent="submit">
+        <p>
+          LoginName: <input type="text" v-model="login" />
+        </p>
+        <p>
+          Password: <input type="password" v-model="password" />
+        </p>
+        <p>
+          <input type="submit" />
+        </p>
+      </form>
+    </div>
+    <div>
+      {{ tips }}
+    </div>
   </div>
 </template>
