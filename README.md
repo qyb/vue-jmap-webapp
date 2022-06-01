@@ -8,7 +8,7 @@ Now it's at an early stage with a few functions: login(auth), list mailboxes, li
 
 ## a full-functional webmail need to be implemented (development schedule)
 
-0. Prepare a demo-site (2022 May)
+0. ~~Prepare a demo-site (2022 May)~~ **Done. visit [Demo](https://bwh1.rubyfish.app/)**
 
 1. Message Read (2022 Jun)
     * threads UI
