@@ -150,33 +150,58 @@ onMounted(() => {
       ids: null,
     }).then(result => {
       console.log(result)
-      let boxes = result.list
-      for (let box of boxes) {
-        knownRules.forEach((item, index, array) => {
-          if (box.role == item) {
-            knownBoxList[index].props = box
-            knownBoxList[index].id = box.id
-            console.log('%s(%s) match role %s', box.name, box.id, item)
+      let mailboxNoRule: Array<IMailboxProperties> = []
+      for (let box of result.list) {
+        let matched = false
+        if (box.role) {
+          knownRules.forEach((item, index, array) => {
+            if (box.role == item) {
+              knownBoxList[index].props = box
+              knownBoxList[index].id = box.id
+              console.log('%s(%s) match role %s', box.name, box.id, item)
+              matched = true
+              return
+            }
+          })
+          if (!matched) {
+            // Unknown role ....
+            console.log('%s(%s) unknown role %s', box.name, box.id, box.role)
+            knownBoxList.push({
+              name: box.name,
+              id: box.id,
+              props: box,
+            })
           }
-        })
+        } else {
+          mailboxNoRule.push(box)
+        }
       }
 
       knownBoxList.forEach((item, index, array) => {
         if (!item.props) {
-          for (let box of boxes) {
-            if (box.role == null) {
-              if (box.name == item.name) {
-                item.props = box
-                item.id = box.id
-                console.log('%s match name %s', box.id, item.name)
-              }
+          for (let box of mailboxNoRule) {
+            if (box.name == item.name) {
+              item.props = box
+              item.id = box.id
+              console.log('%s match name %s, try set SPECIAL-USE ATTR', box.id, item.name)
+              box.role = '' // set zero-length string as removed flag
             }
           }
         }
-        if (item.id && item.id !== '') {
+        if (item.id) { // corrupt cyrus mailboxes.db may return ''
           boxList.push(item)
         }
       })
+
+      for (let box of mailboxNoRule) {
+        if (box.role !== '' && box.id) {
+          boxList.push({
+            name: box.name,
+            id: box.id,
+            props: box,
+          })
+        }
+      }
 
       if (boxList.length > 0) {
         mailboxInfo.id = boxList[0].id
