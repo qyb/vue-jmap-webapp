@@ -145,7 +145,8 @@ export class JClient {
       //  '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
       //}, '2'],
       ]).then(value => {
-        resolve(value[1].list)
+        const response = value[1] as IEmailGetResponse
+        resolve(response.list)
       }, reason => {
         reject(reason)
       })
@@ -174,7 +175,8 @@ export class JClient {
           // "maxBodyValueBytes": 256
         }, '1']
       ]).then(value => {
-        resolve(value[1].list)
+        const response = value[1] as IEmailGetResponse
+        resolve(response.list)
       }, reason => {
         reject(reason)
       })
