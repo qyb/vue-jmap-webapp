@@ -1,8 +1,15 @@
 import { Client } from 'jmap-client-ts/lib'
 import {
   IInvocationName,
-  IGetArguments, IEntityProperties,
-  IEmailQueryArguments, IEmailGetArguments, IEmailGetResponse, IEmailProperties,
+  IReplaceableAccountId,
+  IGetArguments,
+  ISetArguments,
+  IQueryArguments,
+  IChangesArguments,
+  IEmailFilterCondition,
+  IEmailQueryArguments, IEmailGetArguments,
+  IEmailGetResponse, IMailboxSetResponse,
+  IEntityProperties, IEmailProperties,
 } from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
 /*
@@ -31,13 +38,25 @@ interface JThreadQueryHelper {
 }
 type JThreadQueryArguments = JEmailQueryArguments | JThreadQueryHelper
 
+export interface JSetArguments<Properties extends IEntityProperties> extends IReplaceableAccountId {
+  ifInState?: string;
+  create?: { [id: string]: Partial<Properties> };
+  update?: { [id: string]: Partial<Properties> }; // !!!NOTE: Mailbox/set conflict https://jmap.io/spec-core.html#set
+  destroy?: string[];
+}
+
 export type JArguments =
   | IGetArguments<IEntityProperties>  // 似乎如果直接用 IArguments 无法推导出 type|null 中的 null 类型，怀疑是 VSCode 的 bug
+  | ISetArguments<IEntityProperties>
+  | JSetArguments<IEntityProperties>
+  | IQueryArguments<IEmailFilterCondition>
+  | IChangesArguments
   | IEmailGetArguments                // TODO: req 只需要有一个抽象接口 IGetArguments<IEntityProperties> 就可以，将来想办法去掉这里的定义
   | JThreadQueryArguments
 
 type ErrorResponse = Array<string | {"type": string}>
-type JThreadQueryResponse = Array<JInvocation<IEmailGetResponse> | ErrorResponse>
+type JInvocationResponse = Array<JInvocation<IEmailGetResponse> | JInvocation<IMailboxSetResponse> | ErrorResponse>
+type JResponse = IEmailGetResponse | IMailboxSetResponse
 
 export class JClient {
   client: Client
@@ -71,12 +90,12 @@ export class JClient {
   }
 
   // TODO: 这里的 requests 和 promise 日后需要继续扩充类型定义
-  public req (requests: JInvocation<JArguments>[]): Promise<IEmailGetResponse[]> {
+  public req (requests: JInvocation<JArguments>[]): Promise<JResponse[]> {
     const session = this.client.getSession()
     return new Promise((resolve, reject) => {
       this.transport.post<{
         sessionState: string
-        methodResponses: JThreadQueryResponse
+        methodResponses: JInvocationResponse
       }>(session.apiUrl, { // 相比较 jmap-client-ts 的 IRequest 类型, 这里拆解出来了
         using: this.getCapabilities(),
         methodCalls: requests // 相当于 jmap-client-ts 的 IInvocation<IArguments>[] 类型
@@ -86,13 +105,13 @@ export class JClient {
         Authorization: this.accessToken == '' ?
           this.authorizationHeader : "Bearer " + this.accessToken
       }).then(value => {
-        const result: Array<IEmailGetResponse> = []
+        const result: Array<JResponse> = []
         // console.log('response sessionState: %s', value.sessionState)
         value.methodResponses.forEach((item, index, array) => {
           if (item[0] === 'error') {
             throw item[1]
           } else {
-            result.push(item[1] as IEmailGetResponse)
+            result.push(item[1] as JResponse)
           }
         })
         resolve(result)

@@ -9,9 +9,10 @@ import {
   MIN_FULL, MIN_NORMAL, MIN_COMPACT,
  } from '@/utils/screen';
 import MailView from './MailView.vue'
-import { IMailboxProperties } from 'jmap-client-ts/lib/types'
+import { IMailboxProperties, IMailboxSetResponse } from 'jmap-client-ts/lib/types'
 import { $globalState, resetGlobalState } from '@/utils/global'
 import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
+import { JInvocation, JSetArguments } from '@/utils/jclient'
 
 const router = useRouter()
 
@@ -150,6 +151,14 @@ onMounted(() => {
       ids: null,
     }).then(result => {
       console.log(result)
+      const fixSpecialUSE:JInvocation<JSetArguments<IMailboxProperties>>[] = [
+        [ "Mailbox/set", {
+            "accountId": $globalState.accountId,
+            "ifInState": result.state,
+          }, "0"
+        ]
+      ]
+
       let mailboxNoRule: Array<IMailboxProperties> = []
       for (let box of result.list) {
         let matched = false
@@ -177,6 +186,8 @@ onMounted(() => {
         }
       }
 
+      const fixObj: {[id: string]: Partial<IMailboxProperties>} = {}
+      let fixCount = 0
       knownBoxList.forEach((item, index, array) => {
         if (!item.props) {
           for (let box of mailboxNoRule) {
@@ -184,6 +195,10 @@ onMounted(() => {
               item.props = box
               item.id = box.id
               console.log('%s match name %s, try set SPECIAL-USE ATTR', box.id, item.name)
+              const patchObj: Partial<IMailboxProperties> = {'role': item.name.toLowerCase()}
+
+              fixObj[box.id] = patchObj
+              fixCount ++
               box.role = '' // set zero-length string as removed flag
             }
           }
@@ -192,6 +207,20 @@ onMounted(() => {
           boxList.push(item)
         }
       })
+
+      if (fixCount > 0) {
+        fixSpecialUSE[0][1].update = fixObj
+        $globalState.jclient?.req(fixSpecialUSE).then(fixResponse => {
+          const response = fixResponse[0] as IMailboxSetResponse
+          if (response.updated) {
+            for (const [key, value] of Object.entries(response.updated)) {
+              console.log(`Mailbox/set: ${key} success`);
+            }
+          }
+        }).catch(error => {
+          console.error(error.message)
+        })
+      }
 
       for (let box of mailboxNoRule) {
         if (box.role !== '' && box.id) {
