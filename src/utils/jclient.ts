@@ -38,17 +38,9 @@ interface JThreadQueryHelper {
 }
 type JThreadQueryArguments = JEmailQueryArguments | JThreadQueryHelper
 
-export interface JSetArguments<Properties extends IEntityProperties> extends IReplaceableAccountId {
-  ifInState?: string;
-  create?: { [id: string]: Partial<Properties> };
-  update?: { [id: string]: Partial<Properties> }; // !!!NOTE: Mailbox/set conflict https://jmap.io/spec-core.html#set
-  destroy?: string[];
-}
-
 export type JArguments =
   | IGetArguments<IEntityProperties>  // 似乎如果直接用 IArguments 无法推导出 type|null 中的 null 类型，怀疑是 VSCode 的 bug
   | ISetArguments<IEntityProperties>
-  | JSetArguments<IEntityProperties>
   | IQueryArguments<IEmailFilterCondition>
   | IChangesArguments
   | IEmailGetArguments                // TODO: req 只需要有一个抽象接口 IGetArguments<IEntityProperties> 就可以，将来想办法去掉这里的定义

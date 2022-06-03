@@ -9,10 +9,10 @@ import {
   MIN_FULL, MIN_NORMAL, MIN_COMPACT,
  } from '@/utils/screen';
 import MailView from './MailView.vue'
-import { IMailboxProperties, IMailboxSetResponse } from 'jmap-client-ts/lib/types'
+import { IMailboxProperties, IMailboxSetResponse, ISetArguments } from 'jmap-client-ts/lib/types'
 import { $globalState, resetGlobalState } from '@/utils/global'
 import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
-import { JInvocation, JSetArguments } from '@/utils/jclient'
+import { JInvocation } from '@/utils/jclient'
 
 const router = useRouter()
 
@@ -151,7 +151,7 @@ onMounted(() => {
       ids: null,
     }).then(result => {
       console.log(result)
-      const fixSpecialUSE:JInvocation<JSetArguments<IMailboxProperties>>[] = [
+      const fixSpecialUSE:JInvocation<ISetArguments<IMailboxProperties>>[] = [
         [ "Mailbox/set", {
             "accountId": $globalState.accountId,
             "ifInState": result.state,
