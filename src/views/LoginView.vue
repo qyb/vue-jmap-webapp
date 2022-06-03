@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import { $globalState } from '@/utils/global'
@@ -14,7 +14,7 @@ const router = useRouter()
 const route = useRoute()
 const login = ref('')
 const password = ref('')
-const tips = ref('')
+const tips = reactive({commitDate: '', commitVersion: '', info: ''})
 
 function fetchSession (authorizationHeader: string, isSubmit: boolean): void {
   const jclient = new JClient(transport, authorizationHeader)
@@ -67,9 +67,15 @@ onMounted(() => {
     fetchSession(authorizationHeader, false)
   }
   if (import.meta.env.MODE == 'demo') {
-    tips.value = 'Demo Account: inbox@rubyfish.app, Password: inbox'
+    tips.info = 'Demo Account: inbox@rubyfish.app, Password: inbox'
+
+    const t1 = import.meta.env.VITE_APP_TITLE.split('(')
+    if (t1.length == 2) {
+      tips.commitDate = t1[1].split(')')[0]
+      tips.commitVersion = `https://github.com/qyb/vue-jmap-webapp/commit/${t1[0].split(' ')[2]}`
+    }
   } else if (import.meta.env.MODE == 'development') {
-    tips.value = 'development site'
+    tips.info = 'development site'
   }
 })
 </script>
@@ -89,7 +95,12 @@ onMounted(() => {
       </form>
     </div>
     <div>
-      {{ tips }}
+      {{ tips.info }}
+      <div v-if="tips.commitVersion">
+        commit date({{tips.commitDate}}):
+        <a :href="tips.commitVersion" target="_blank">
+        {{tips.commitVersion}}</a>
+      </div>
     </div>
   </div>
 </template>
