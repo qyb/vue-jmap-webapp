@@ -142,9 +142,9 @@ onMounted(() => {
     setStateMini()
   }
 
-  if ($globalState.jclient) {
-    let session = $globalState.jclient.client.getSession()
-    username.value = session.username
+  if ($globalState.jclient && $globalState.loginEmail) {
+    // let session = $globalState.jclient.client.getSession()
+    username.value = $globalState.loginEmail
 
     $globalState.jclient.client.mailbox_get({ // 参考 jmapweb: Mail.svelte 参数
       accountId: null,  // null 传递进去会自动使用 getFirstAccountId
