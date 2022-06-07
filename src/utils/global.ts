@@ -51,7 +51,7 @@ export declare type BodyMixed = Array<{
 }>
 export declare type ThreadsContent = Array<{
   msgId: string
-  from: IEmailAddress[]
+  from: IEmailAddress
   receivedAt: string
   preview: string
   body: BodyMixed

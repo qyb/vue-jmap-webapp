@@ -5,7 +5,7 @@ import { MessageLIST, MsgListPagination } from '@/utils/global'
   即: emit->MailView->props/MsgList
  */
 const emit = defineEmits<{
-  (e: 'read', id: string): void
+  (e: 'read', id: string, subject: string): void
   (e: 'page', pos: number): void
 }>()
 
@@ -21,15 +21,15 @@ function switchPos (pos: number) {
   } else {console.log(pos)}
 }
 
-function readThread (id: string, index: number) {
+function readThread (id: string, index: number, subject: string) {
   props.msgList[index].seen = true // TODO: write seen state back
-  emit('read', id)
+  emit('read', id, subject)
 }
 </script>
 <template>
   <div class="msglist">
     <ul>
-      <li v-for="(item, index) in msgList" :key="item.threadId" style="margin-top: 10px;" @click="readThread(item.threadId, index)">
+      <li v-for="(item, index) in msgList" :key="item.threadId" style="margin-top: 10px;" @click="readThread(item.threadId, index, item.subject)">
         <div :style="item.seen ? 'font-weight: normal':'font-weight: bold'">
           <div class="single-line">
             {{item.from[0].name}}

@@ -18,7 +18,7 @@ const props = defineProps<{
   mailbox: {id: string, total: number}
 }>()
 
-const threadId = ref('') // 当前阅读的邮件会话
+const threadSubject = ref('') // 当前阅读的邮件会话
 
 // 以下三个变量传参给 MsgList 组件
 const totalThreads = ref(0)
@@ -64,8 +64,9 @@ function switchPos (pos: number) {
 }
 
 const msgContents:ThreadsContent = reactive([])
-function readThread (id: string) {
-  threadId.value = id
+function readThread (id: string, subject: string) {
+  const now = (new Date()).getTime()
+  threadSubject.value = subject
   if (!showList.value) {
     showListInContent.value = !showListInContent.value
   }
@@ -83,10 +84,11 @@ function readThread (id: string) {
           })
         }
       })
+      const datetime = new Date(item.receivedAt)
       msgContents.push({
         msgId: item.id,
-        from: item.from ? item.from: [],
-        receivedAt: item.receivedAt,
+        from: item.from && item.from.length > 0 ?  item.from[0]: {"name": "", "email": ""},
+        receivedAt: fuzzyDatetime(now, datetime),
         preview: item.preview,
         body: body
       })
@@ -132,7 +134,7 @@ function onWatch (state: number): void {
       showListInContent.value = false
     }
   } else {
-    if (threadId.value == '') { // 此时 MsgContent 是占位内容
+    if (threadSubject.value == '') { // 此时 MsgContent 是占位内容
       showListInContent.value = true
     }
   }
@@ -160,11 +162,16 @@ watch(
       <div v-else>
         <div class="thread-header">
           <span v-if="!showList"><button @click="showListInContent=!showListInContent">back</button></span>
-          <span style="flex: 1;">ThreadsHead {{ threadId }}</span>
+          <span class="thread-subject">{{ threadSubject }}</span>
         </div>
-        <div v-for="(item, index) in msgContents" :key="item.msgId">
-          <div>emailHeader...</div>
+        <div class="thread-email" v-for="(item, index) in msgContents" :key="item.msgId">
+          <div class="thread-email-header">
+            <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
+            <span class="thread-email-date">{{item.receivedAt}}</span>
+          </div>
+          <div class="thread-email-content">
           <div v-for="body in item.body" :key="body.partId" v-html="body.value"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -184,6 +191,7 @@ watch(
   color: #344955;
   width: 0; /* 防止被子元素撑出横向滚动条 */
   overflow-y: auto;
+  text-align: left;
 }
 
 .thread-header {
@@ -191,7 +199,36 @@ watch(
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  height: 24px;
-  border-bottom: 1px solid #344955;
+  /*height: 24px; */
+  padding-left: 6px;
+}
+
+.thread-subject {
+  flex: 1;
+  font-size: x-large;
+}
+
+.thread-email {
+  border-top: 1px solid #344955;
+  margin: 6px;
+}
+
+.thread-email-header {
+  display: flex;
+  justify-content: space-between;
+  white-space:nowrap;
+  padding: 6px;
+}
+
+.thread-email-from {
+  font-weight: bold;
+}
+.thread-email-date {
+  text-align: right;
+  margin-left: 6px;
+}
+.thread-email-content {
+  padding: 12px;
+  font-size: small;
 }
 </style>
