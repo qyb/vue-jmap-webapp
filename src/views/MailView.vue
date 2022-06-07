@@ -33,9 +33,11 @@ const paginationData: MsgListPagination = reactive({
 
 function memberOfThread(outbound: boolean, addrList: IEmailAddress[]): string {
   let addr:string[] = []
+  let addrSet = new Set([$globalState.loginEmail])
   addrList.forEach((item) => {
-    if (item.email != $globalState.loginEmail) { // skip myself addr.
+    if (!addrSet.has(item.email)) { // skip myself addr.
       addr.push(item.name)
+      addrSet.add(item.email)
     }
   })
 
