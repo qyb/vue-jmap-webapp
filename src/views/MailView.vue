@@ -96,7 +96,9 @@ function readThread (id: string, subject: string) {
         const htmlBodyPartId = value.partId
         if (htmlBodyPartId && item.bodyValues &&
         htmlBodyPartId in item.bodyValues) {
+          console.log(value.type)
           body.push({
+            txt: value.type == 'text/plain' ? true: false,
             partId: htmlBodyPartId,
             value: item.bodyValues[htmlBodyPartId].value,
           })
@@ -188,7 +190,10 @@ watch(
             <span class="thread-email-date">{{item.receivedAt}}</span>
           </div>
           <div class="thread-email-content">
-          <div v-for="body in item.body" :key="body.partId" v-html="body.value"></div>
+          <div v-for="body in item.body" :key="body.partId">
+            <div v-if="body.txt"><pre v-html="body.value"></pre></div>
+            <div v-else v-html="body.value"></div>
+          </div>
           </div>
         </div>
       </div>
@@ -219,6 +224,7 @@ watch(
   align-items: center;
   /*height: 24px; */
   padding-left: 6px;
+  margin-top: 12px;
 }
 
 .thread-subject {
