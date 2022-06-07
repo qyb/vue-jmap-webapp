@@ -9,7 +9,7 @@ import {
   IEmailFilterCondition,
   IEmailQueryArguments, IEmailGetArguments,
   IEmailGetResponse, IMailboxSetResponse,
-  IEntityProperties, IEmailProperties, IEmailAddress,
+  IEntityProperties, IEmailProperties, IEmailAddress, IEmailKeywords,
 } from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
 /*
@@ -134,7 +134,7 @@ export class JClient {
         ['Email/get', {
           accountId: accountId,
           '#ids': { resultOf: '0', name: 'Email/query', path: '/ids' },
-          properties: [ 'threadId', 'subject', 'receivedAt', 'preview', 'keywords' ]
+          properties: [ 'threadId', 'subject', 'receivedAt', 'preview' ]
         }, '1'],
 
         // Next we get the emailIds of the messages in those threads
@@ -143,20 +143,20 @@ export class JClient {
           '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
         }, '2'],
 
-        // Finally we get From_Address for MsgList's sender-column
+        // Finally we get From/To Addresses for MsgList's sender-column,  iterate all $seen state to set Thread $seen state
         ['Email/get', {
           accountId: accountId,
           '#ids': { resultOf: '2', name: 'Thread/get', path: '/list/*/emailIds' },
-          properties: ['from', 'threadId', 'to']
+          properties: ['from', 'threadId', 'to', 'keywords']
         }, '3']
       ]).then(value => {
         const response = value[1] as IEmailGetResponse
-        const fromList = value[3] as IEmailGetResponse
-        console.log(fromList)
+        const allList = value[3] as IEmailGetResponse
         response.list.forEach((thread) => {
           const fromAddr: IEmailAddress[] = []
           const toAddr: IEmailAddress[] = []
-          fromList.list.forEach((item) => {
+          const kw: IEmailKeywords = { '$seen': true}
+          allList.list.forEach((item) => {
             if (thread.threadId == item.threadId) {
               if (item.from && item.from.length > 0) {
                 const addr = item.from[0]
@@ -169,10 +169,15 @@ export class JClient {
                   toAddr.push(fixAddr(addr))
                 })
               }
+
+              if (!(item.keywords && item.keywords.$seen)) {
+                kw.$seen = undefined
+              }
             }
           })
           thread.from = fromAddr
           thread.to = toAddr
+          thread.keywords = kw
         })
         resolve(response.list)
       }, reason => {
