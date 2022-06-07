@@ -161,12 +161,12 @@ export class JClient {
               if (item.from && item.from.length > 0) {
                 const addr = item.from[0]
                 // NOTE `name` may be null, jmap-client-ts's IEmailAddress is wrong...
-                push2AddrList(fromAddr, addr)
+                fromAddr.push(fixAddr(addr))
               }
 
               if (item.to) {
                 item.to.forEach(addr=>{
-                  push2AddrList(toAddr, addr)
+                  toAddr.push(fixAddr(addr))
                 })
               }
             }
@@ -212,14 +212,14 @@ export class JClient {
   }
 }
 
-function push2AddrList(obj: IEmailAddress[], addr: IEmailAddress): void {
+export function fixAddr(addr: IEmailAddress): IEmailAddress {
   if (addr.name) {
-    obj.push({
+    return {
       name: addr.name,
       email: addr.email
-    })
+    }
   } else {
-    obj.push({
+    return({
       name: addr.email.split('@')[0],
       email: addr.email
     })

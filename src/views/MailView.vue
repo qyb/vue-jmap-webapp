@@ -13,6 +13,7 @@ import { PLACEHOLDER_MAILBOXID,
 } from '@/utils/global'
 import { fuzzyDatetime } from '@/utils/common'
 import MsglistView from '@/components/MsgList.vue'
+import {fixAddr} from '@/utils/jclient'
 
 const props = defineProps<{
   widthState: number
@@ -109,7 +110,7 @@ function readThread (id: string, subject: string) {
       const datetime = new Date(item.receivedAt)
       msgContents.push({
         msgId: item.id,
-        from: item.from && item.from.length > 0 ?  item.from[0]: {"name": "", "email": ""},
+        from: item.from && item.from.length > 0 ?  fixAddr(item.from[0]): {"name": "null name", "email": "null address"},
         receivedAt: fuzzyDatetime(now, datetime),
         preview: item.preview,
         body: body
