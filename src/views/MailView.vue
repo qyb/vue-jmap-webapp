@@ -20,6 +20,7 @@ const props = defineProps<{
 }>()
 
 const threadSubject = ref('') // 当前阅读的邮件会话
+const nullSubject = '(null subject)'
 
 // 以下三个变量传参给 MsgList 组件
 const totalThreads = ref(0)
@@ -59,7 +60,7 @@ function renderMailbox (mailbox: {id: string, total: number}, pos: number = 0): 
         threadId: item.threadId,
         // msglist_get guarantee from/to won't be null
         addr: memberOfThread(outbound,  (outbound?item.to:item.from) as IEmailAddress[]),
-        subject: item.subject,
+        subject: item.subject?item.subject:nullSubject,
         receivedAt: fuzzyDatetime(now, datetime),
         preview: item.preview,
         seen: seen
@@ -83,7 +84,7 @@ function switchPos (pos: number) {
 const msgContents:ThreadsContent = reactive([])
 function readThread (id: string, subject: string) {
   const now = (new Date()).getTime()
-  threadSubject.value = subject
+  threadSubject.value = subject ? subject:nullSubject
   if (!showList.value) {
     showListInContent.value = !showListInContent.value
   }
