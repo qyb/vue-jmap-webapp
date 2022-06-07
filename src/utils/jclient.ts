@@ -9,7 +9,7 @@ import {
   IEmailFilterCondition,
   IEmailQueryArguments, IEmailGetArguments,
   IEmailGetResponse, IMailboxSetResponse,
-  IEntityProperties, IEmailProperties,
+  IEntityProperties, IEmailProperties, IEmailAddress,
 } from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
 /*
@@ -116,6 +116,7 @@ export class JClient {
   public msglist_get (accountId: string|null, mailboxId: string, pos: number): Promise<IEmailProperties[]> {
     return new Promise((resolve, reject) => {
       this.req([
+        // First we do a query for the id of first N messages in the mailbox
         ['Email/query', {
           accountId: accountId,
           collapseThreads: true,
@@ -127,17 +128,52 @@ export class JClient {
           limit: 50,
           calculateTotal: true,
         }, '0'],
+
+        // Then we fetch the threadId/Subject/ReceivedAt of each of those messages
+        // we don't need from/to here
         ['Email/get', {
           accountId: accountId,
           '#ids': { resultOf: '0', name: 'Email/query', path: '/ids' },
-          'properties': [ "threadId", "from", "subject", "receivedAt", "preview", "keywords" ]
+          properties: [ 'threadId', 'subject', 'receivedAt', 'preview', 'keywords' ]
         }, '1'],
-      //['Thread/get', {
-      //  accountId: accountId,
-      //  '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
-      //}, '2'],
+
+        // Next we get the emailIds of the messages in those threads
+        ['Thread/get', {
+          accountId: accountId,
+          '#ids': { resultOf: '1', name: 'Email/get', path: '/list/*/threadId' }
+        }, '2'],
+
+        // Finally we get From_Address for MsgList's sender-column
+        ['Email/get', {
+          accountId: accountId,
+          '#ids': { resultOf: '2', name: 'Thread/get', path: '/list/*/emailIds' },
+          properties: ['from', 'threadId', 'to']
+        }, '3']
       ]).then(value => {
         const response = value[1] as IEmailGetResponse
+        const fromList = value[3] as IEmailGetResponse
+        console.log(fromList)
+        response.list.forEach((thread) => {
+          const fromAddr: IEmailAddress[] = []
+          const toAddr: IEmailAddress[] = []
+          fromList.list.forEach((item) => {
+            if (thread.threadId == item.threadId) {
+              if (item.from && item.from.length > 0) {
+                const addr = item.from[0]
+                // NOTE `name` may be null, jmap-client-ts's IEmailAddress is wrong...
+                push2AddrList(fromAddr, addr)
+              }
+
+              if (item.to) {
+                item.to.forEach(addr=>{
+                  push2AddrList(toAddr, addr)
+                })
+              }
+            }
+          })
+          thread.from = fromAddr
+          thread.to = toAddr
+        })
         resolve(response.list)
       }, reason => {
         reject(reason)
@@ -172,6 +208,20 @@ export class JClient {
       }, reason => {
         reject(reason)
       })
+    })
+  }
+}
+
+function push2AddrList(obj: IEmailAddress[], addr: IEmailAddress): void {
+  if (addr.name) {
+    obj.push({
+      name: addr.name,
+      email: addr.email
+    })
+  } else {
+    obj.push({
+      name: addr.email.split('@')[0],
+      email: addr.email
     })
   }
 }

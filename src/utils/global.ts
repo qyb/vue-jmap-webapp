@@ -5,6 +5,7 @@ interface globalState {
   permission: number
   accountId: string | null
   jclient?: JClient
+  loginEmail?: string  // define VITE_DEFAULT_DOMAIN in .env.local; login or login@defaultdomain
 }
 
 export const $globalState: globalState = {
@@ -16,6 +17,7 @@ export function resetGlobalState(): void {
   $globalState.permission = -1
   $globalState.accountId = null
   $globalState.jclient = undefined
+  $globalState.loginEmail = undefined
 }
 
 interface layoutElement {
@@ -31,9 +33,11 @@ export const $globalLayout: layoutElementMap = {}
 
 export const PLACEHOLDER_MAILBOXID = 'foo-bar'
 
+export const $globalMailbox: { [mailboxId:string]: string|null} = {} // id: role
+
 export declare type MessageLIST = Array<{
   threadId: string
-  from: IEmailAddress[]
+  addr: string
   subject: string
   receivedAt: string
   preview: string

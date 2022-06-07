@@ -5,10 +5,11 @@
  */
 import { onMounted, watch, reactive, ref } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
-import { $globalState } from '@/utils/global'
+import { IEmailAddress } from 'jmap-client-ts/lib/types'
 import { PLACEHOLDER_MAILBOXID,
   MessageLIST, MsgListPagination,
   ThreadsContent, BodyMixed,
+  $globalState, $globalMailbox,
 } from '@/utils/global'
 import { fuzzyDatetime } from '@/utils/common'
 import MsglistView from '@/components/MsgList.vue'
@@ -29,7 +30,22 @@ const paginationData: MsgListPagination = reactive({
   currList: '',
 })
 
+function memberOfThread(outbound: boolean, addrList: IEmailAddress[]): string {
+  let addr:string[] = []
+  addrList.forEach((item) => {
+    if (item.email != $globalState.loginEmail) { // skip myself addr.
+      addr.push(item.name)
+    }
+  })
+
+  return (outbound?'Recipient: ':'') + addr.join(',')
+}
+
 function renderMailbox (mailbox: {id: string, total: number}, pos: number = 0): void {
+  let outbound = false
+  if ($globalMailbox[mailbox.id] == 'sent' || $globalMailbox[mailbox.id] == 'drafts') {
+    outbound = true
+  }
   const now = (new Date()).getTime()
   $globalState.jclient?.msglist_get($globalState.accountId, mailbox.id, pos).then(list=>{
     msgList.length = 0
@@ -41,7 +57,8 @@ function renderMailbox (mailbox: {id: string, total: number}, pos: number = 0): 
       const datetime = new Date(item.receivedAt)
       msgList.push({
         threadId: item.threadId,
-        from: item.from ? item.from : [],
+        // msglist_get guarantee from/to won't be null
+        addr: memberOfThread(outbound,  (outbound?item.to:item.from) as IEmailAddress[]),
         subject: item.subject,
         receivedAt: fuzzyDatetime(now, datetime),
         preview: item.preview,

@@ -39,6 +39,8 @@ It's a vue3 project, and depends vite as the dev/build server.
 
 vite.config.ts define the JMAP backend of your dev environment.
 
+create .env.local with `VITE_DEFAULT_DOMAIN=yourdefaultdomain`. see [.env Files](https://vitejs.dev/guide/env-and-mode.html#env-files)
+
 ### Recommended IDE Setup
 
 - [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)

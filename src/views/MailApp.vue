@@ -11,7 +11,7 @@ import {
 import MailView from './MailView.vue'
 import { IMailboxProperties, IMailboxSetResponse, ISetArguments } from 'jmap-client-ts/lib/types'
 import { $globalState, resetGlobalState } from '@/utils/global'
-import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
+import { PLACEHOLDER_MAILBOXID, $globalMailbox } from '@/utils/global'
 import { JInvocation } from '@/utils/jclient'
 
 const router = useRouter()
@@ -181,6 +181,8 @@ onMounted(() => {
               props: box,
             })
           }
+
+          $globalMailbox[box.id] = box.role
         } else {
           mailboxNoRule.push(box)
         }
@@ -199,7 +201,8 @@ onMounted(() => {
 
               fixObj[box.id] = patchObj
               fixCount ++
-              box.role = '' // set zero-length string as removed flag
+              box.role = '' // set zero-length string from `null` as removed flag
+              $globalMailbox[box.id] = box.name.toLowerCase()
             }
           }
         }
@@ -229,9 +232,17 @@ onMounted(() => {
             id: box.id,
             props: box,
           })
+          if (box.name == 'Sent Items') { //fix outlook client, it will not affect backend
+            $globalMailbox[box.id] = 'sent'
+          } else if (box.name == 'Deleted Items') { //fix outlook client, it will not affect backend
+            $globalMailbox[box.id] = 'trash'
+          } else {
+            $globalMailbox[box.id] = null
+          }
         }
       }
 
+      console.log($globalMailbox)
       if (boxList.length > 0) {
         mailboxInfo.id = boxList[0].id
         mailboxInfo.total = boxList[0].props?.totalThreads as number

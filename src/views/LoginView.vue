@@ -17,6 +17,7 @@ const password = ref('')
 const tips = reactive({commitDate: '', commitVersion: '', info: ''})
 
 function fetchSession (authorizationHeader: string, isSubmit: boolean): void {
+  const login = window.atob(authorizationHeader.split(' ')[1]).split(':')[0]
   const jclient = new JClient(transport, authorizationHeader)
   jclient.client.fetchSession().then(() => {
     let session = jclient.client.getSession()
@@ -38,6 +39,15 @@ function fetchSession (authorizationHeader: string, isSubmit: boolean): void {
     $globalState.jclient = jclient
     $globalState.permission = 0
     $globalState.accountId = accountId
+    if (login.indexOf('@') != -1) {
+      $globalState.loginEmail = login
+    } else {
+      if (import.meta.env.VITE_DEFAULT_DOMAIN) {
+        $globalState.loginEmail = login + '@' + import.meta.env.VITE_DEFAULT_DOMAIN
+      } else {
+        $globalState.loginEmail = login
+      }
+    }
 
     let redirect = route.query?.redirect as string
     let path = redirect ? redirect:'/app/mail'
@@ -68,6 +78,7 @@ onMounted(() => {
   }
   if (import.meta.env.MODE == 'demo') {
     tips.info = 'Demo Account: inbox@rubyfish.app, Password: inbox'
+    login.value = 'inbox@rubyfish.app'
 
     const t1 = import.meta.env.VITE_APP_TITLE.split('(')
     if (t1.length == 2) {

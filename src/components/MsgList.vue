@@ -32,7 +32,7 @@ function readThread (id: string, index: number, subject: string) {
       <li v-for="(item, index) in msgList" :key="item.threadId" style="margin-top: 10px;" @click="readThread(item.threadId, index, item.subject)">
         <div :style="item.seen ? 'font-weight: normal':'font-weight: bold'">
           <div class="single-line">
-            {{item.from[0].name}}
+            {{item.addr}}
           </div>
           <div class="subject-line">
             <span class="single-line">{{item.subject}}</span>
