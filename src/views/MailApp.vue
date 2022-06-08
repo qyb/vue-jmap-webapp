@@ -9,10 +9,9 @@ import {
   MIN_FULL, MIN_NORMAL, MIN_COMPACT,
  } from '@/utils/screen';
 import MailView from './MailView.vue'
-import { IMailboxProperties, IMailboxSetResponse, ISetArguments } from 'jmap-client-ts/lib/types'
-import { $globalState, resetGlobalState } from '@/utils/global'
-import { PLACEHOLDER_MAILBOXID, $globalMailbox } from '@/utils/global'
-import { JInvocation } from '@/utils/jclient'
+import { IMailboxProperties, IMailboxSetArguments } from 'jmap-client-ts/lib/types'
+import { PLACEHOLDER_MAILBOXID, $globalMailbox, $globalState, resetGlobalState } from '@/utils/global'
+import { Client } from 'jmap-client-ts'
 
 const router = useRouter()
 
@@ -143,21 +142,17 @@ onMounted(() => {
   }
 
   if ($globalState.jclient && $globalState.loginEmail) {
-    // let session = $globalState.jclient.client.getSession()
     username.value = $globalState.loginEmail
-
-    $globalState.jclient.client.mailbox_get({ // 参考 jmapweb: Mail.svelte 参数
-      accountId: null,  // null 传递进去会自动使用 getFirstAccountId
+    const client: Client = $globalState.jclient.client
+    client.mailbox_get({
+      accountId: $globalState.accountId,
       ids: null,
     }).then(result => {
       console.log(result)
-      const fixSpecialUSE:JInvocation<ISetArguments<IMailboxProperties>>[] = [
-        [ "Mailbox/set", {
-            "accountId": $globalState.accountId,
-            "ifInState": result.state,
-          }, "0"
-        ]
-      ]
+      const fixSpecialUSE:IMailboxSetArguments = {
+        accountId: $globalState.accountId,
+        ifInState: result.state,
+      }
 
       let mailboxNoRule: Array<IMailboxProperties> = []
       for (let box of result.list) {
@@ -212,9 +207,8 @@ onMounted(() => {
       })
 
       if (fixCount > 0) {
-        fixSpecialUSE[0][1].update = fixObj
-        $globalState.jclient?.req(fixSpecialUSE).then(fixResponse => {
-          const response = fixResponse[0] as IMailboxSetResponse
+        fixSpecialUSE.update = fixObj
+        client.mailbox_set(fixSpecialUSE).then(response => {
           if (response.updated) {
             for (const [key, value] of Object.entries(response.updated)) {
               console.log(`Mailbox/set: ${key} success`);
