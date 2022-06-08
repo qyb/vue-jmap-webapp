@@ -23,6 +23,12 @@ const props = defineProps<{
 const hasMediaContent = ref(false)
 const showMediaContent = ref(false)
 const toggleMediaTips = ref('show media')
+function initMediaUI() {
+  hasMediaContent.value = false
+  showMediaContent.value = false
+  toggleMediaTips.value = 'show media'
+}
+
 const threadSubject = ref('') // 当前阅读的邮件会话
 const nullSubject = '(null subject)'
 
@@ -96,8 +102,7 @@ function removeElementsByTagName(doc: Document, tag: string) {
 
 const msgContents:ThreadsContent = reactive([])
 function readThread (id: string, subject: string) {
-  hasMediaContent.value = false
-  showMediaContent.value = false
+  initMediaUI()
 
   const now = (new Date()).getTime()
   threadSubject.value = subject ? subject:nullSubject
