@@ -193,9 +193,7 @@ watch(
             <span class="thread-email-date">{{item.receivedAt}}</span>
           </div>
           <div class="thread-email-content">
-          <div v-for="body in item.body" :key="body.partId">
-            <div v-if="body.txt"><pre v-html="body.value"></pre></div>
-            <div v-else v-html="body.value"></div>
+          <div v-for="body in item.body" :key="body.partId" :class="body.txt?'like-pre':'normal-block'" v-html="body.value">
           </div>
           </div>
         </div>
@@ -257,5 +255,13 @@ watch(
 .thread-email-content {
   padding: 12px;
   font-size: small;
+}
+
+.like-pre {
+  white-space: pre;
+  font-family: monospace;
+}
+.normal-block {
+  white-space: normal;
 }
 </style>
