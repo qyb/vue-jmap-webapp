@@ -19,6 +19,9 @@ const props = defineProps<{
   mailbox: MailboxInfo
 }>()
 
+const msgcontent_id = 'msgcontent' // use msgcontent_id to scrollTo top (0,0)
+const msgcontent_eleid = ref(msgcontent_id)
+
 const hasMediaContent = ref(false)
 const showMediaContent = ref(false)
 const toggleMediaTips = ref('show media')
@@ -83,6 +86,7 @@ function readThread (id: string, subject: string) {
 
     nextTick(()=> {
       replaceCID(inlineBlobList)
+      document.getElementById(msgcontent_id)?.scrollTo(0, 0)
     })
   })
 }
@@ -144,7 +148,7 @@ watch(
       @read="readThread"
       :class="msglistClass" v-if="showList" />
 
-    <div class="msgcontent">
+    <div class="msgcontent" :id="msgcontent_eleid">
       <MsglistView :msgList="msgList" :totalThreads="totalThreads" :paginationData="paginationData"
         @page="switchPos"
         @read="readThread"
