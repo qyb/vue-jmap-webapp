@@ -3,7 +3,7 @@
   在 mini 模式下，MsgList 和 MsgContent 将共享同一个 View
   所以 List/Content 的数据都封装在这里完成
  */
-import { onMounted, watch, reactive, ref } from 'vue'
+import { onMounted, watch, reactive, ref, nextTick } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
 import { IEmailAddress, IEmailBodyValue } from 'jmap-client-ts/lib/types'
 import { PLACEHOLDER_MAILBOXID,
@@ -23,10 +23,12 @@ const props = defineProps<{
 const hasMediaContent = ref(false)
 const showMediaContent = ref(false)
 const toggleMediaTips = ref('show media')
+const inlineBlobList = new Set<string>()
 function initMediaUI() {
   hasMediaContent.value = false
   showMediaContent.value = false
   toggleMediaTips.value = 'show media'
+  inlineBlobList.clear()
 }
 
 const threadSubject = ref('') // 当前阅读的邮件会话
@@ -111,11 +113,11 @@ function readThread (id: string, subject: string) {
   }
   $globalState.jclient?.thread_get($globalState.accountId, id).then(list => {
     msgContents.length = 0
-    list.forEach((item, index, array) => {
+    list.forEach((email, index, array) => {
       const body:BodyMixed = []
-      if (item.bodyValues) {
-        const bodyValues: {[bodyPartId: string]: IEmailBodyValue;} = item.bodyValues
-        item.htmlBody?.forEach((value) => {
+      if (email.bodyValues) {
+        const bodyValues: {[bodyPartId: string]: IEmailBodyValue;} = email.bodyValues
+        email.htmlBody?.forEach((value) => {
           const htmlBodyPartId = value.partId
           if (htmlBodyPartId && htmlBodyPartId in bodyValues &&
           (value.type == 'text/plain' || value.type == 'text/html')) {
@@ -133,10 +135,12 @@ function readThread (id: string, subject: string) {
               removeElementsByTagName(doc, 'iframe')
               removeElementsByTagName(doc, 'script')
               removeElementsByTagName(doc, 'link')
+              removeElementsByTagName(doc, 'embed')
 
               const anchors = doc.getElementsByTagName('a')
               for (let i = 0; i < anchors.length; i++) {
                 anchors[i].target = '_blank'
+                anchors[i].rel = 'noopener'
               }
 
               const styles = doc.getElementsByTagName('style')
@@ -150,18 +154,30 @@ function readThread (id: string, subject: string) {
                 }
               }
 
-              const withMediaHTML = doc.documentElement.innerHTML
-
-              const embeds = doc.getElementsByTagName('embed')
-              for (let i = 0; i < embeds.length; i++) {
-                embeds[i].src = ''
-              }
-
               const images = doc.getElementsByTagName('img')
               for (let i = 0; i < images.length; i++) {
-                // console.log(images[i].src)
-                images[i].src = ''
-                images[i].srcset = ''
+                if (images[i].src.startsWith('cid:')) {
+                  const cid = images[i].src.slice(4)
+                  email.htmlBody?.forEach(part => {
+                    if (part.cid == cid && part.blobId && part.type) {
+                      images[i].className = part.blobId
+                      inlineBlobList.add(part.blobId + ' ' + part.type) // Set()/UNIQUE only support primitive type
+                      return
+                    }
+                  })
+                } else {
+                  // images[i].crossOrigin = 'anonymous'
+                  // ??? set crossOrigin will cause CORS error ??? why ???
+                }
+              }
+
+              const withMediaHTML = doc.documentElement.innerHTML
+
+              for (let i = 0; i < images.length; i++) {
+                if (!images[i].src.startsWith('cid:')) {
+                  images[i].src = ''
+                  images[i].srcset = ''
+                }
               }
 
               const safeContent = doc.documentElement.innerHTML
@@ -180,14 +196,43 @@ function readThread (id: string, subject: string) {
         })
       }
 
-      const datetime = new Date(item.receivedAt)
+      const datetime = new Date(email.receivedAt)
       msgContents.push({
-        msgId: item.id,
-        from: item.from && item.from.length > 0 ?  fixAddr(item.from[0]): {"name": "null name", "email": "null address"},
+        msgId: email.id,
+        from: email.from && email.from.length > 0 ?  fixAddr(email.from[0]): {name: 'null name', email: 'null address'},
         receivedAt: fuzzyDatetime(now, datetime),
-        preview: item.preview,
+        preview: email.preview,
         body: body
       })
+    })
+    nextTick(()=> {
+      for (let item of inlineBlobList) {
+        const inlineBlob = item.split(' ')
+        const type = inlineBlob[1]
+        const blobId = inlineBlob[0]
+        let url = $globalState.jclient?.client.getSession().downloadUrl as string
+        let accountId = $globalState.accountId as string
+        let downloadUrl = url?.replace('{accountId}', encodeURIComponent(accountId))
+            .replace('{blobId}', encodeURIComponent(blobId))
+            .replace('{name}', encodeURIComponent('foo.bar'))
+            .replace('{type}', encodeURIComponent(type))
+        $globalState.jclient?.blob_data(downloadUrl).then(response => {
+          if (response.ok) {
+            response.blob().then(blob=>{
+              const reader = new FileReader()
+              reader.onloadend = () => {
+                const elements = document.getElementsByClassName(blobId)
+                for (let i = 0; i < elements.length; i++) {
+                  const element = elements[i] as HTMLImageElement
+                  element.src = reader.result as string
+                  // console.log(element.src)
+                }
+              }
+              reader.readAsDataURL(blob)
+            })
+          }
+        })
+      }
     })
   })
 }

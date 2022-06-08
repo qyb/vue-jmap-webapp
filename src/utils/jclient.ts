@@ -46,7 +46,7 @@ export type JArguments =
   | IEmailGetArguments                // TODO: req 只需要有一个抽象接口 IGetArguments<IEntityProperties> 就可以，将来想办法去掉这里的定义
   | JThreadQueryArguments
 
-type ErrorResponse = Array<string | {"type": string}>
+type ErrorResponse = Array<string | {'type': string}>
 type JInvocationResponse = Array<JInvocation<IEmailGetResponse> | JInvocation<IMailboxSetResponse> | ErrorResponse>
 type JResponse = IEmailGetResponse | IMailboxSetResponse
 
@@ -64,7 +64,7 @@ export class JClient {
       sessionUrl: '/jmap',
       transport: transport,
       httpHeaders: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: authorizationHeader
       }
     })
@@ -92,10 +92,10 @@ export class JClient {
         using: this.getCapabilities(),
         methodCalls: requests // 相当于 jmap-client-ts 的 IInvocation<IArguments>[] 类型
       }, {
-        "Accept": 'application/json;jmapVersion=rfc-8621',
-        "Content-Type": "application/json",
+        Accept: 'application/json;jmapVersion=rfc-8621',
+        'Content-Type': 'application/json',
         Authorization: this.accessToken == '' ?
-          this.authorizationHeader : "Bearer " + this.accessToken
+          this.authorizationHeader : 'Bearer ' + this.accessToken
       }).then(value => {
         const result: Array<JResponse> = []
         // console.log('response sessionState: %s', value.sessionState)
@@ -120,7 +120,7 @@ export class JClient {
         ['Email/query', {
           accountId: accountId,
           collapseThreads: true,
-          filter: { "inMailbox": mailboxId },
+          filter: { inMailbox: mailboxId },
           sort: [
             { property: 'receivedAt', isAscending: false }
           ],
@@ -200,12 +200,11 @@ export class JClient {
             path: '/list/*/emailIds',
             resultOf: '0'
           },
-          "properties": [ "threadId", "mailboxIds", "from", "subject",
-            "receivedAt", "header:List-POST:asURLs",
-            "htmlBody", "bodyValues"],
-          "bodyProperties": [ "partId", "blobId", "size", "type" ],
-          "fetchHTMLBodyValues": true,
-          // "maxBodyValueBytes": 256
+          properties: [ 'threadId', 'mailboxIds', 'from', 'subject',
+            'receivedAt', 'header:List-POST:asURLs',
+            'htmlBody', 'bodyValues'],
+          bodyProperties: [ 'partId', 'blobId', 'size', 'type', 'cid' ],
+          fetchHTMLBodyValues: true,
         }, '1']
       ]).then(value => {
         const response = value[1] as IEmailGetResponse
@@ -213,6 +212,15 @@ export class JClient {
       }, reason => {
         reject(reason)
       })
+    })
+  }
+
+  public blob_data (url: string): Promise<Response> {
+    return fetch(url, {
+      headers: {
+        Authorization: this.accessToken == '' ?
+        this.authorizationHeader : 'Bearer ' + this.accessToken
+      }
     })
   }
 }
