@@ -200,7 +200,7 @@ export class JClient {
             path: '/list/*/emailIds',
             resultOf: '0'
           },
-          properties: [ 'threadId', 'mailboxIds', 'from', 'subject',
+          properties: [ 'threadId', 'mailboxIds', 'from', 'subject', 'keywords', 'preview',
             'receivedAt', 'header:List-POST:asURLs',
             'htmlBody', 'bodyValues'],
           bodyProperties: [ 'partId', 'blobId', 'size', 'type', 'cid' ],

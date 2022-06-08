@@ -55,6 +55,13 @@ function switchPos (pos: number) {
   } else {console.log(pos)}
 }
 
+function toggleCollapse(index: number) {
+  if (index == (msgContents.length - 1)) {
+    // the last email always display
+    return
+  }
+  msgContents[index].collapse = !msgContents[index].collapse
+}
 
 const msgContents:ThreadContents = reactive([])
 function readThread (id: string, subject: string) {
@@ -67,6 +74,11 @@ function readThread (id: string, subject: string) {
   $globalState.jclient?.thread_get($globalState.accountId, id).then(list => {
     if (fillThreadContents(list, msgContents, inlineBlobList)) {
       hasMediaContent.value = true
+    }
+
+    if (msgContents.length > 0) {
+      const last = msgContents.length - 1
+      msgContents[last].collapse = false // the last email always display
     }
 
     nextTick(()=> {
@@ -148,11 +160,17 @@ watch(
           </span>
         </div>
         <div class="thread-email" v-for="(item, index) in msgContents" :key="item.msgId">
-          <div class="thread-email-header">
-            <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
+          <div @click="toggleCollapse(index)" class="thread-email-header">
+            <div v-if="item.collapse" class="thread-email-collapse">
+              <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
+              <span class="thread-email-preview">{{item.preview}}</span>
+            </div>
+            <div v-else>
+              <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
+            </div>
             <span class="thread-email-date">{{item.receivedAt}}</span>
           </div>
-          <div class="thread-email-content">
+          <div class="thread-email-content" v-show="!item.collapse">
             <div v-for="body in item.body" :key="body.partId">
               <div v-if="body.txt" class="like-pre" v-text="body.safeContent"></div>
               <div v-else class="normal-block">
@@ -208,10 +226,22 @@ watch(
   justify-content: space-between;
   white-space:nowrap;
   padding: 6px;
+  cursor: pointer;
 }
 
+.thread-email-collapse {
+  white-space:nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .thread-email-from {
   font-weight: bold;
+}
+
+.thread-email-preview {
+  font-size: x-small;
+  color: #4A6572; /* 600 */
+  margin-left: 16px;
 }
 .thread-email-date {
   text-align: right;

@@ -21,6 +21,7 @@ export function fillThreadContents(list: IEmailProperties[],
   msgContents: ThreadContents, inlineBlobList: Set<string>): boolean {
 
   let ret = false
+  const previewLength = 100
 
   const now = (new Date()).getTime()
   msgContents.length = 0
@@ -37,6 +38,7 @@ export function fillThreadContents(list: IEmailProperties[],
               txt: true,
               partId: htmlBodyPartId,
               safeContent: bodyValues[htmlBodyPartId].value,
+              preview: bodyValues[htmlBodyPartId].value.slice(0, previewLength)
             })
           } else {
             const parser = new DOMParser()
@@ -98,6 +100,7 @@ export function fillThreadContents(list: IEmailProperties[],
             body.push({
               txt: false,
               partId: htmlBodyPartId,
+              preview: doc.body.innerText.slice(0, previewLength),
               safeContent: safeContent,
               withMediaContent: safeContent == withMediaHTML ? undefined : withMediaHTML
             })
@@ -107,10 +110,18 @@ export function fillThreadContents(list: IEmailProperties[],
     }
 
     const datetime = new Date(email.receivedAt)
+    const flag = email.keywords.$seen == true? true: false
+    if (!email.preview) {
+      if (body.length > 0) {
+        email.preview = body[0].preview
+      }
+    }
     msgContents.push({
       msgId: email.id,
       from: email.from && email.from.length > 0 ?  fixAddr(email.from[0]): {name: 'null name', email: 'null address'},
       receivedAt: fuzzyDatetime(now, datetime),
+      $seen: flag,
+      collapse: flag,
       preview: email.preview,
       body: body
     })

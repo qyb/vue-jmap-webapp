@@ -54,12 +54,15 @@ export declare type BodyMixed = Array<{
   partId: string
   safeContent: string
   withMediaContent?: string
+  preview: string
   txt: boolean
 }>
 export declare type ThreadContents = Array<{
   msgId: string
   from: IEmailAddress
   receivedAt: string
+  $seen: boolean
+  collapse: boolean
   preview: string
   body: BodyMixed
 }>
