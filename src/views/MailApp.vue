@@ -9,9 +9,10 @@ import {
   MIN_FULL, MIN_NORMAL, MIN_COMPACT,
  } from '@/utils/screen';
 import MailView from './MailView.vue'
-import { IMailboxProperties, IMailboxSetArguments } from 'jmap-client-ts/lib/types'
-import { PLACEHOLDER_MAILBOXID, $globalMailbox, $globalState, resetGlobalState } from '@/utils/global'
+import { IMailboxSetArguments } from 'jmap-client-ts/lib/types'
+import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem } from '@/utils/global'
 import { Client } from 'jmap-client-ts'
+import { fillMboxList } from '@/utils/mailbox'
 
 const router = useRouter()
 
@@ -103,20 +104,8 @@ function switchMailbox (arg: MailboxItem): void {
   mailboxInfo.total = arg.props?.totalThreads as number
 }
 
-interface MailboxItem {
-  name: string
-  id: string
-  displayName?: string // i18n
-  props?: IMailboxProperties
-}
-//https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml
-const knownBoxList: Array<MailboxItem> = [
-  {name: 'Inbox', id: ''},
-  {name: 'Drafts', id: ''},
-  {name: 'Sent', id: ''},
-  {name: 'Trash', id: ''},
-  {name: 'Junk', id: ''},
-]
+
+
 const knownRules: Array<string> = [
   'inbox',
   'drafts',
@@ -154,59 +143,9 @@ onMounted(() => {
         ifInState: result.state,
       }
 
-      let mailboxNoRule: Array<IMailboxProperties> = []
-      for (let box of result.list) {
-        let matched = false
-        if (box.role) {
-          knownRules.forEach((item, index, array) => {
-            if (box.role == item) {
-              knownBoxList[index].props = box
-              knownBoxList[index].id = box.id
-              console.log('%s(%s) match role %s', box.name, box.id, item)
-              matched = true
-              return
-            }
-          })
-          if (!matched) {
-            // Unknown role ....
-            console.log('%s(%s) unknown role %s', box.name, box.id, box.role)
-            knownBoxList.push({
-              name: box.name,
-              id: box.id,
-              props: box,
-            })
-          }
+      const fixObj = fillMboxList(result.list, boxList)
 
-          $globalMailbox[box.id] = box.role
-        } else {
-          mailboxNoRule.push(box)
-        }
-      }
-
-      const fixObj: {[id: string]: Partial<IMailboxProperties>} = {}
-      let fixCount = 0
-      knownBoxList.forEach((item, index, array) => {
-        if (!item.props) {
-          for (let box of mailboxNoRule) {
-            if (box.name == item.name) {
-              item.props = box
-              item.id = box.id
-              console.log('%s match name %s, try set SPECIAL-USE ATTR', box.id, item.name)
-              const patchObj: Partial<IMailboxProperties> = {'role': item.name.toLowerCase()}
-
-              fixObj[box.id] = patchObj
-              fixCount ++
-              box.role = '' // set zero-length string from `null` as removed flag
-              $globalMailbox[box.id] = box.name.toLowerCase()
-            }
-          }
-        }
-        if (item.id) { // corrupt cyrus mailboxes.db may return ''
-          boxList.push(item)
-        }
-      })
-
-      if (fixCount > 0) {
+      if (Object.keys(fixObj).length > 0) {
         fixSpecialUSE.update = fixObj
         client.mailbox_set(fixSpecialUSE).then(response => {
           if (response.updated) {
@@ -219,24 +158,6 @@ onMounted(() => {
         })
       }
 
-      for (let box of mailboxNoRule) {
-        if (box.role !== '' && box.id) {
-          boxList.push({
-            name: box.name,
-            id: box.id,
-            props: box,
-          })
-          if (box.name == 'Sent Items') { //fix outlook client, it will not affect backend
-            $globalMailbox[box.id] = 'sent'
-          } else if (box.name == 'Deleted Items') { //fix outlook client, it will not affect backend
-            $globalMailbox[box.id] = 'trash'
-          } else {
-            $globalMailbox[box.id] = null
-          }
-        }
-      }
-
-      console.log($globalMailbox)
       if (boxList.length > 0) {
         mailboxInfo.id = boxList[0].id
         mailboxInfo.total = boxList[0].props?.totalThreads as number

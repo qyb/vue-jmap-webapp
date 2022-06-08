@@ -1,4 +1,4 @@
-import { IEmailAddress } from 'jmap-client-ts/lib/types'
+import { IEmailAddress, IMailboxProperties } from 'jmap-client-ts/lib/types'
 import { JClient } from '@/utils/jclient'
 
 interface globalState {
@@ -69,4 +69,11 @@ export declare type ThreadContents = Array<{
 export declare type MailboxInfo = {
   id: string
   total: number
+}
+export declare type MailboxItem = {
+  name: string
+  id: string
+  role: string
+  displayName?: string // i18n
+  props?: IMailboxProperties
 }
