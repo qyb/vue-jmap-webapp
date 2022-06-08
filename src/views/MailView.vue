@@ -5,7 +5,7 @@
  */
 import { onMounted, watch, reactive, ref } from 'vue'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen';
-import { IEmailAddress } from 'jmap-client-ts/lib/types'
+import { IEmailAddress, IEmailBodyValue } from 'jmap-client-ts/lib/types'
 import { PLACEHOLDER_MAILBOXID,
   MessageLIST, MsgListPagination,
   ThreadsContent, BodyMixed,
@@ -20,6 +20,9 @@ const props = defineProps<{
   mailbox: {id: string, total: number}
 }>()
 
+const hasMediaContent = ref(false)
+const showMediaContent = ref(false)
+const toggleMediaTips = ref('show media')
 const threadSubject = ref('') // 当前阅读的邮件会话
 const nullSubject = '(null subject)'
 
@@ -84,8 +87,18 @@ function switchPos (pos: number) {
   } else {console.log(pos)}
 }
 
+function removeElementsByTagName(doc: Document, tag: string) {
+  let elements = doc.getElementsByTagName(tag)
+  for (let i = 0; i < elements.length; i++) {
+    elements[i].remove()
+  }
+}
+
 const msgContents:ThreadsContent = reactive([])
 function readThread (id: string, subject: string) {
+  hasMediaContent.value = false
+  showMediaContent.value = false
+
   const now = (new Date()).getTime()
   threadSubject.value = subject ? subject:nullSubject
   if (!showList.value) {
@@ -95,18 +108,73 @@ function readThread (id: string, subject: string) {
     msgContents.length = 0
     list.forEach((item, index, array) => {
       const body:BodyMixed = []
-      item.htmlBody?.forEach((value) => {
-        const htmlBodyPartId = value.partId
-        if (htmlBodyPartId && item.bodyValues &&
-        htmlBodyPartId in item.bodyValues) {
-          console.log(value.type)
-          body.push({
-            txt: value.type == 'text/plain' ? true: false,
-            partId: htmlBodyPartId,
-            value: item.bodyValues[htmlBodyPartId].value,
-          })
-        }
-      })
+      if (item.bodyValues) {
+        const bodyValues: {[bodyPartId: string]: IEmailBodyValue;} = item.bodyValues
+        item.htmlBody?.forEach((value) => {
+          const htmlBodyPartId = value.partId
+          if (htmlBodyPartId && htmlBodyPartId in bodyValues &&
+          (value.type == 'text/plain' || value.type == 'text/html')) {
+            let txt = false
+            if (value.type == 'text/plain') {
+              body.push({
+                txt: true,
+                partId: htmlBodyPartId,
+                safeContent: bodyValues[htmlBodyPartId].value,
+              })
+            } else {
+              const parser = new DOMParser()
+              const doc = parser.parseFromString(bodyValues[htmlBodyPartId].value, 'text/html')
+
+              removeElementsByTagName(doc, 'iframe')
+              removeElementsByTagName(doc, 'script')
+              removeElementsByTagName(doc, 'link')
+
+              const anchors = doc.getElementsByTagName('a')
+              for (let i = 0; i < anchors.length; i++) {
+                anchors[i].target = '_blank'
+              }
+
+              const styles = doc.getElementsByTagName('style')
+              for (let i = 0; i < styles.length; i++) {
+                let rules = styles[i].sheet?.cssRules
+                if (rules) {
+                  for (let j = rules.length - 1; j >= 0; j--) {
+                    // console.log(rules[i].cssText)
+                    // TODO: try remove unsafe css expression here
+                  }
+                }
+              }
+
+              const withMediaHTML = doc.documentElement.innerHTML
+
+              const embeds = doc.getElementsByTagName('embed')
+              for (let i = 0; i < embeds.length; i++) {
+                embeds[i].src = ''
+              }
+
+              const images = doc.getElementsByTagName('img')
+              for (let i = 0; i < images.length; i++) {
+                // console.log(images[i].src)
+                images[i].src = ''
+                images[i].srcset = ''
+              }
+
+              const safeContent = doc.documentElement.innerHTML
+
+              if (safeContent != withMediaHTML) {
+                hasMediaContent.value = true // it's a global switch for all emails in the thread
+              }
+              body.push({
+                txt: false,
+                partId: htmlBodyPartId,
+                safeContent: safeContent,
+                withMediaContent: safeContent == withMediaHTML ? undefined : withMediaHTML
+              })
+            }
+          }
+        })
+      }
+
       const datetime = new Date(item.receivedAt)
       msgContents.push({
         msgId: item.id,
@@ -116,7 +184,6 @@ function readThread (id: string, subject: string) {
         body: body
       })
     })
-    console.log(msgContents)
   })
 }
 
@@ -186,6 +253,11 @@ watch(
         <div class="thread-header">
           <span v-if="!showList"><button @click="showListInContent=!showListInContent">back</button></span>
           <span class="thread-subject">{{ threadSubject }}</span>
+          <span v-if="hasMediaContent">
+            <button @click="showMediaContent=!showMediaContent; toggleMediaTips=showMediaContent?'disable media':'show media'">
+              {{toggleMediaTips}}
+            </button>
+          </span>
         </div>
         <div class="thread-email" v-for="(item, index) in msgContents" :key="item.msgId">
           <div class="thread-email-header">
@@ -193,8 +265,13 @@ watch(
             <span class="thread-email-date">{{item.receivedAt}}</span>
           </div>
           <div class="thread-email-content">
-          <div v-for="body in item.body" :key="body.partId" :class="body.txt?'like-pre':'normal-block'" v-html="body.value">
-          </div>
+            <div v-for="body in item.body" :key="body.partId">
+              <div v-if="body.txt" class="like-pre" v-text="body.safeContent"></div>
+              <div v-else class="normal-block">
+                <div v-if="showMediaContent && body.withMediaContent" v-html="body.withMediaContent"></div>
+                <div v-else v-html="body.safeContent"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -258,7 +335,7 @@ watch(
 }
 
 .like-pre {
-  white-space: pre;
+  white-space: pre-wrap;
   font-family: monospace;
 }
 .normal-block {

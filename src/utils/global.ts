@@ -51,7 +51,8 @@ export declare type MsgListPagination = {
 
 export declare type BodyMixed = Array<{
   partId: string
-  value: string
+  safeContent: string
+  withMediaContent?: string
   txt: boolean
 }>
 export declare type ThreadsContent = Array<{
