@@ -55,7 +55,7 @@ export declare type BodyMixed = Array<{
   withMediaContent?: string
   txt: boolean
 }>
-export declare type ThreadsContent = Array<{
+export declare type ThreadContents = Array<{
   msgId: string
   from: IEmailAddress
   receivedAt: string
