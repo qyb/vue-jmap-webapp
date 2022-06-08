@@ -32,6 +32,7 @@ interface layoutElementMap {
 export const $globalLayout: layoutElementMap = {}
 
 export const PLACEHOLDER_MAILBOXID = 'foo-bar'
+export const NULL_SUBJECT = '(null subject)'
 
 export const $globalMailbox: { [mailboxId:string]: string|null} = {} // id: role
 
@@ -62,3 +63,7 @@ export declare type ThreadContents = Array<{
   preview: string
   body: BodyMixed
 }>
+export declare type MailboxInfo = {
+  id: string
+  total: number
+}

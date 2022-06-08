@@ -17,7 +17,9 @@ function removeElementsByTagName(doc: Document, tag: string) {
  *
  * it's a html body filter, remove dangerous content and get ready for cid:xxxxx replacement
  */
-export function fillThreadContents(list: IEmailProperties[], msgContents: ThreadContents, inlineBlobList: Set<string>): boolean {
+export function fillThreadContents(list: IEmailProperties[],
+  msgContents: ThreadContents, inlineBlobList: Set<string>): boolean {
+
   let ret = false
 
   const now = (new Date()).getTime()

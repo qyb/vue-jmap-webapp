@@ -4,20 +4,19 @@
   所以 List/Content 的数据都封装在这里完成
  */
 import { onMounted, watch, reactive, ref, nextTick } from 'vue'
-import { MINI_STATE, FULL_STATE } from '@/utils/screen';
-import { IEmailAddress, } from 'jmap-client-ts/lib/types'
-import { PLACEHOLDER_MAILBOXID,
+import { MINI_STATE, FULL_STATE } from '@/utils/screen'
+import { PLACEHOLDER_MAILBOXID, NULL_SUBJECT,
   MessageLIST, MsgListPagination,
-  ThreadContents,
-  $globalState, $globalMailbox,
+  ThreadContents, MailboxInfo,
+  $globalState
 } from '@/utils/global'
-import { fuzzyDatetime } from '@/utils/common'
 import MsglistView from '@/components/MsgList.vue'
-import { fillThreadContents, replaceCID } from '@/utils/readmail';
+import { fillThreadContents, replaceCID } from '@/utils/readmail'
+import { fillMsgList } from '@/utils/listmail'
 
 const props = defineProps<{
   widthState: number
-  mailbox: {id: string, total: number}
+  mailbox: MailboxInfo
 }>()
 
 const hasMediaContent = ref(false)
@@ -32,7 +31,7 @@ function initMediaUI() {
 }
 
 const threadSubject = ref('') // 当前阅读的邮件会话
-const nullSubject = '(null subject)'
+
 
 // 以下三个变量传参给 MsgList 组件
 const totalThreads = ref(0)
@@ -43,49 +42,10 @@ const paginationData: MsgListPagination = reactive({
   currList: '',
 })
 
-function memberOfThread(outbound: boolean, addrList: IEmailAddress[]): string {
-  let addr:string[] = []
-  let addrSet = new Set([$globalState.loginEmail])
-  addrList.forEach((item) => {
-    if (!addrSet.has(item.email)) { // skip myself addr.
-      addr.push(item.name)
-      addrSet.add(item.email)
-    }
-  })
-
-  return (outbound?'Recipient: ':'') + addr.join(',')
-}
-
-function renderMailbox (mailbox: {id: string, total: number}, pos: number = 0): void {
-  let outbound = false
-  if ($globalMailbox[mailbox.id] == 'sent' || $globalMailbox[mailbox.id] == 'drafts') {
-    outbound = true
-  }
-  const now = (new Date()).getTime()
-  $globalState.jclient?.msglist_get($globalState.accountId, mailbox.id, pos).then(list=>{
-    msgList.length = 0
-    list.forEach((item) => {
-      let seen = false
-      if (item.keywords && item.keywords.$seen) {
-        seen = true
-      }
-      const datetime = new Date(item.receivedAt)
-      msgList.push({
-        threadId: item.threadId,
-        // msglist_get guarantee from/to won't be null
-        addr: memberOfThread(outbound,  (outbound?item.to:item.from) as IEmailAddress[]),
-        subject: item.subject?item.subject:nullSubject,
-        receivedAt: fuzzyDatetime(now, datetime),
-        preview: item.preview,
-        seen: seen
-      })
-    })
-
-    const length = list.length
-    paginationData.currList = `${pos+1}-${pos+length},`
-    paginationData.prevPos = pos - 50
-    paginationData.nextPos = (pos + length == totalThreads.value) ? -1 : pos + 50
-    // console.log(msgList)
+function renderMailbox (mailbox: MailboxInfo, pos: number = 0): void {
+  $globalState.jclient?.msglist_get($globalState.accountId, mailbox.id, pos)
+  .then(list=>{
+    fillMsgList(list, mailbox, pos, msgList, paginationData)
   })
 }
 
@@ -100,7 +60,7 @@ const msgContents:ThreadContents = reactive([])
 function readThread (id: string, subject: string) {
   initMediaUI()
 
-  threadSubject.value = subject ? subject:nullSubject
+  threadSubject.value = subject ? subject:NULL_SUBJECT
   if (!showList.value) {
     showListInContent.value = !showListInContent.value
   }
