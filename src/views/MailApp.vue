@@ -104,15 +104,6 @@ function switchMailbox (arg: MailboxItem): void {
   mailboxInfo.total = arg.props?.totalThreads as number
 }
 
-
-
-const knownRules: Array<string> = [
-  'inbox',
-  'drafts',
-  'sent',
-  'trash',
-  'junk',
-]
 const boxList: Array<MailboxItem>  = reactive([])
 
 onMounted(() => {
