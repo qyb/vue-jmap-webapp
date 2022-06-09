@@ -221,10 +221,12 @@ export class JClient {
             path: '/list/*/emailIds',
             resultOf: '0'
           },
-          properties: [ 'threadId', 'mailboxIds', 'from', 'subject', 'keywords', 'preview',
+          properties: [ 'threadId', 'mailboxIds', 'from', 'subject', 'keywords', 'preview', 'attachments',
             'receivedAt', 'header:List-POST:asURLs',
             'htmlBody', 'bodyValues'],
-          bodyProperties: [ 'partId', 'blobId', 'size', 'type', 'cid' ],
+          bodyProperties: [ 'partId', 'blobId', 'size', 'type', 'cid',
+            'name', /* for attachment download */
+            'disposition' /* for attachment flag  */ ],
           fetchHTMLBodyValues: true,
         }, '1']
       ]).then(value => {

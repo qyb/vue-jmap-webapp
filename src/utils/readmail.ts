@@ -1,7 +1,7 @@
 import { IEmailProperties, IEmailBodyValue } from "jmap-client-ts/lib/types";
 import { ThreadContents, BodyMixed, $globalState } from "./global";
 import { fuzzyDatetime } from '@/utils/common'
-import {fixAddr} from '@/utils/jclient'
+import {fixAddr, JAttachment} from '@/utils/jclient'
 
 function removeElementsByTagName(doc: Document, tag: string) {
   let elements = doc.getElementsByTagName(tag)
@@ -116,6 +116,18 @@ export function fillThreadContents(list: IEmailProperties[],
         email.preview = body[0].preview
       }
     }
+
+    const attachments:JAttachment[] = []
+    if (email.attachments) {
+      email.attachments.forEach(attachment=>{
+        let att = (attachment as unknown) as JAttachment
+        if (att.disposition == 'attachment') {
+          att.name = att.name.replaceAll('/', '-').replaceAll('\\', '-')
+          attachments.push(att)
+        }
+      })
+    }
+
     msgContents.push({
       msgId: email.id,
       from: email.from && email.from.length > 0 ?  fixAddr(email.from[0]): {name: 'null name', email: 'null address'},
@@ -123,6 +135,7 @@ export function fillThreadContents(list: IEmailProperties[],
       $seen: flag,
       collapse: flag,
       preview: email.preview,
+      attachments: attachments,
       body: body
     })
   })
@@ -130,17 +143,23 @@ export function fillThreadContents(list: IEmailProperties[],
   return ret
 }
 
+export function genDownloadUrl(blobId:string, fname:string, type:string): string {
+  let url = $globalState.jclient?.client.getSession().downloadUrl as string
+  let accountId = $globalState.accountId as string
+  let downloadUrl = url.replace('{accountId}', encodeURIComponent(accountId))
+      .replace('{blobId}', encodeURIComponent(blobId))
+      .replace('{name}', encodeURIComponent(fname))
+      .replace('{type}', encodeURIComponent(type))
+  return downloadUrl
+}
+
 export function replaceCID(inlineBlobList: Set<string>): void {
   for (let item of inlineBlobList) {
     const inlineBlob = item.split(' ')
     const type = inlineBlob[1]
     const blobId = inlineBlob[0]
-    let url = $globalState.jclient?.client.getSession().downloadUrl as string
-    let accountId = $globalState.accountId as string
-    let downloadUrl = url?.replace('{accountId}', encodeURIComponent(accountId))
-        .replace('{blobId}', encodeURIComponent(blobId))
-        .replace('{name}', encodeURIComponent('foo.bar'))
-        .replace('{type}', encodeURIComponent(type))
+
+    const downloadUrl = genDownloadUrl(blobId, 'foo.bar', type)
     $globalState.jclient?.blob_data(downloadUrl).then(response => {
       if (response.ok) {
         response.blob().then(blob=>{

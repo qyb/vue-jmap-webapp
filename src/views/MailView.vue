@@ -11,8 +11,9 @@ import { PLACEHOLDER_MAILBOXID, NULL_SUBJECT,
   $globalState
 } from '@/utils/global'
 import MsglistView from '@/components/MsgList.vue'
-import { fillThreadContents, replaceCID } from '@/utils/readmail'
+import { fillThreadContents, genDownloadUrl, replaceCID } from '@/utils/readmail'
 import { fillMsgList } from '@/utils/listmail'
+import { JAttachment } from '@/utils/jclient'
 
 const props = defineProps<{
   widthState: number
@@ -88,6 +89,21 @@ function readThread (id: string, subject: string) {
       replaceCID(inlineBlobList)
       document.getElementById(msgcontent_id)?.scrollTo(0, 0)
     })
+  })
+}
+
+function downloadAtt(attachment: JAttachment): void {
+  const downloadUrl = genDownloadUrl(attachment.blobId, attachment.name, attachment.type)
+  $globalState.jclient?.blob_data(downloadUrl).then(response => {
+    if (response.ok) {
+      response.blob().then(blob=>{
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = attachment.name
+        link.click()
+        URL.revokeObjectURL(link.href)
+      })
+    }
   })
 }
 
@@ -167,7 +183,7 @@ watch(
           <div @click="toggleCollapse(index)" class="thread-email-header">
             <div v-if="item.collapse" class="thread-email-collapse">
               <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
-              <span class="thread-email-preview">{{item.preview}}</span>
+              <span class="thread-email-preview"><font-awesome-icon v-if="item.attachments.length > 0" icon="paperclip" />{{item.preview}}</span>
             </div>
             <div v-else>
               <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
@@ -180,6 +196,13 @@ watch(
               <div v-else class="normal-block">
                 <div v-if="showMediaContent && body.withMediaContent" v-html="body.withMediaContent"></div>
                 <div v-else v-html="body.safeContent"></div>
+              </div>
+            </div>
+            <div v-if="item.attachments.length > 0" class="thread-email-attachments-area">
+              <div v-for="att in item.attachments" class="thread-email-attachment">
+
+                <font-awesome-icon v-if="item.attachments.length > 0" icon="paperclip" />
+                <span :title="`size: ${att.size}`" @click="downloadAtt(att)">{{ att.name }}</span>
               </div>
             </div>
           </div>
@@ -254,6 +277,17 @@ watch(
 .thread-email-content {
   padding: 12px;
   font-size: small;
+}
+.thread-email-attachments-area {
+  border-top: 1px solid #4A6572; /* 600 */
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.thread-email-attachment {
+  margin: 12px 12px 12px 12px;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .like-pre {

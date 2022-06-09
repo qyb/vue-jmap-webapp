@@ -1,5 +1,5 @@
 import { IEmailAddress, IMailboxProperties } from 'jmap-client-ts/lib/types'
-import { JClient } from '@/utils/jclient'
+import { JAttachment, JClient } from '@/utils/jclient'
 
 interface globalState {
   permission: number
@@ -65,6 +65,7 @@ export declare type ThreadContents = Array<{
   $seen: boolean
   collapse: boolean
   preview: string
+  attachments: JAttachment[]
   body: BodyMixed
 }>
 export declare type MailboxInfo = {
