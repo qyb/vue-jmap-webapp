@@ -9,7 +9,7 @@ import {
   IEmailFilterCondition,
   IEmailQueryArguments, IEmailGetArguments,
   IEmailGetResponse, IMailboxSetResponse,
-  IEntityProperties, IEmailProperties, IEmailAddress, IEmailKeywords,
+  IEntityProperties, IEmailProperties, IEmailAddress, IEmailKeywords, Attachment,
 } from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
 /*
@@ -147,7 +147,7 @@ export class JClient {
         ['Email/get', {
           accountId: accountId,
           '#ids': { resultOf: '2', name: 'Thread/get', path: '/list/*/emailIds' },
-          properties: ['from', 'threadId', 'to', 'keywords']
+          properties: ['from', 'threadId', 'to', 'keywords', 'attachments']
         }, '3']
       ]).then(value => {
         const response = value[1] as IEmailGetResponse
@@ -156,6 +156,7 @@ export class JClient {
           const fromAddr: IEmailAddress[] = []
           const toAddr: IEmailAddress[] = []
           const kw: IEmailKeywords = { '$seen': true}
+          const attachments: Attachment[] = []
           allList.list.forEach((item) => {
             if (thread.threadId == item.threadId) {
               if (item.from && item.from.length > 0) {
@@ -173,11 +174,16 @@ export class JClient {
               if (!(item.keywords && item.keywords.$seen)) {
                 kw.$seen = undefined
               }
+
+              if (item.attachments != null && item.attachments.length > 0 && attachments.length == 0) {
+                attachments.push(item.attachments[0])
+              }
             }
           })
           thread.from = fromAddr
           thread.to = toAddr
           thread.keywords = kw
+          thread.attachments = attachments
         })
         resolve(response.list)
       }, reason => {

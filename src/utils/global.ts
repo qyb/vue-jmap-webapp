@@ -43,6 +43,7 @@ export declare type MessageLIST = Array<{
   receivedAt: string
   preview: string
   seen: boolean
+  attachments: boolean
 }>
 export declare type MsgListPagination = {
   prevPos: number,

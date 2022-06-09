@@ -29,8 +29,12 @@ export function fillMsgList (list: IEmailProperties[], mailbox: MailboxInfo, pos
 
   list.forEach((item) => {
     let seen = false
+    let attachments = false
     if (item.keywords && item.keywords.$seen) {
       seen = true
+    }
+    if (item.attachments && item.attachments.length > 0) {
+      attachments = true
     }
     const datetime = new Date(item.receivedAt)
     msgList.push({
@@ -40,7 +44,8 @@ export function fillMsgList (list: IEmailProperties[], mailbox: MailboxInfo, pos
       subject: item.subject?item.subject:NULL_SUBJECT,
       receivedAt: fuzzyDatetime(now, datetime),
       preview: item.preview,
-      seen: seen
+      seen: seen,
+      attachments: attachments,
     })
   })
 

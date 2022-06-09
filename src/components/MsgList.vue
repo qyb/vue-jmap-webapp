@@ -35,12 +35,13 @@ function readThread (id: string, index: number, subject: string) {
             {{item.addr}}
           </div>
           <div class="subject-line">
-            <span class="single-line">{{item.subject}}</span>
+            <span class="single-line"><font-awesome-icon v-if="item.attachments" icon="paperclip" />{{item.subject}}</span>
             <span class="date-line">{{item.receivedAt}}</span>
           </div>
         </div>
         <div class="single-line preview">
           {{item.preview}}
+
         </div>
       </li>
     </ul>

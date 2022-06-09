@@ -3,6 +3,8 @@ import App from './App.vue'
 import router from '@/router'
 import { Layout } from '@/directives/resize'
 import { $globalState } from '@/utils/global'
+import FontAwesomeIcon from '@/utils/fontawesome'
+
 const app = createApp(App)
 
 const site = import.meta.env.VITE_APP_TITLE ? import.meta.env.VITE_APP_TITLE : 'JMAP Webmail'
@@ -28,4 +30,7 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-app.directive('layout', Layout).use(router).mount('#app')
+app.directive('layout', Layout)
+  .component("FontAwesomeIcon", FontAwesomeIcon)
+  .use(router)
+  .mount('#app')
