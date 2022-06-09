@@ -11,12 +11,15 @@ Now it's at an early stage with a few functions: login(auth), list mailboxes, li
 0. ~~Prepare a demo-site (2022 May)~~ **Done. visit [Demo](https://bwh1.rubyfish.app/)**
 
 1. Message Read (2022 Jun)
-    * threads UI
-    * attachment download
+    * ~~threads UI~~ **Done.
+    * email context menu: header viewer, full .eml download...
+    * ~~attachment download~~ **Done.
+    * html content filter & inline img
 
 2. Message Operation (2022 Jun)
     * create mailbox
     * move/delete mail
+    * addressbook
 
 3. Send Message (2022 Jul)
     * compose UI
@@ -29,9 +32,7 @@ Now it's at an early stage with a few functions: login(auth), list mailboxes, li
 
 5. Web Push & WebApp state (2022 Aug)
 
-6. Contact (2022 Sep)
-
-7. More..
+6. More..
 
 ## Howto build: Vue 3 + TypeScript + Vite
 
