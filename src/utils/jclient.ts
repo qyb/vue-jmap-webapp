@@ -50,6 +50,15 @@ type ErrorResponse = Array<string | {'type': string}>
 type JInvocationResponse = Array<JInvocation<IEmailGetResponse> | JInvocation<IMailboxSetResponse> | ErrorResponse>
 type JResponse = IEmailGetResponse | IMailboxSetResponse
 
+export interface JAttachment {
+  partId: string
+  blobId: string
+  size: number
+  name: string
+  type: string
+  disposition: string
+}
+
 export class JClient {
   client: Client
   transport: Transport
@@ -175,8 +184,14 @@ export class JClient {
                 kw.$seen = undefined
               }
 
-              if (item.attachments != null && item.attachments.length > 0 && attachments.length == 0) {
-                attachments.push(item.attachments[0])
+
+              if (item.attachments && attachments.length == 0) {
+                item.attachments.forEach(attachment=>{
+                  let att = (attachment as unknown) as JAttachment
+                  if (att.disposition == 'attachment') {
+                    attachments.push(attachment)
+                  }
+                })
               }
             }
           })
