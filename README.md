@@ -11,9 +11,9 @@ Now it's at an early stage with a few functions: login(auth), list mailboxes, li
 0. ~~Prepare a demo-site (2022 May)~~ **Done. visit [Demo](https://bwh1.rubyfish.app/)**
 
 1. Message Read (2022 Jun)
-    * ~~threads UI~~ **Done.
+    * ~~threads UI~~ **Done.**
     * email context menu: header viewer, full .eml download...
-    * ~~attachment download~~ **Done.
+    * ~~attachment download~~ **Done.**
     * html content filter & inline img
 
 2. Message Operation (2022 Jun)
@@ -40,7 +40,7 @@ It's a vue3 project, and depends vite as the dev/build server.
 
 vite.config.ts define the JMAP backend of your dev environment.
 
-create .env.local with `VITE_DEFAULT_DOMAIN=yourdefaultdomain`. see [.env Files](https://vitejs.dev/guide/env-and-mode.html#env-files)
+Optional: create .env.local with `VITE_DEFAULT_DOMAIN=yourdefaultdomain`. see [.env Files](https://vitejs.dev/guide/env-and-mode.html#env-files)
 
 ### Recommended IDE Setup
 
