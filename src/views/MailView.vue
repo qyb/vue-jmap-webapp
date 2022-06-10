@@ -306,9 +306,11 @@ watch(
 
 .like-pre {
   white-space: pre-wrap;
+  word-break: break-all;
   font-family: monospace;
 }
 .normal-block {
   white-space: normal;
+  word-break: break-all;
 }
 </style>
