@@ -173,7 +173,7 @@ defineProps<{
 <template>
   <div v-layout:[arg]="onResize" class="appcontainer">
     <div class="appbar">
-      <button class="btn" @click="drawer"></button>
+      <font-awesome-icon icon="bars" class="btn" @click="drawer"/>
       <div style="flex: 1;">
         MailAppViewSize: {{ width }}, {{ height }}
       </div>
