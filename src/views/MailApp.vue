@@ -33,20 +33,24 @@ function setStateFull () {
     folderClass.value = 'folder-full'
   }
   layoutState.widthState = FULL_STATE
+  showProfileIcon.value = true
 }
 function setStateNormal () {
   if (layoutState.folderState) {
     folderClass.value = 'folder-normal'
   }
   layoutState.widthState = NORMAL_STATE
+  showProfileIcon.value = true
 }
 function setStateCompact () {
   folderClass.value = 'folder-hidden'
   layoutState.widthState = COMPACT_STATE
+  showProfileIcon.value = false
 }
 function setStateMini () {
   folderClass.value = 'folder-hidden'
   layoutState.widthState = MINI_STATE
+  showProfileIcon.value = false
 }
 
 function onResize (ele: HTMLElement): void {
@@ -80,6 +84,7 @@ function logout () {
   router.push({name: 'login'})
 }
 
+const showProfileIcon = ref(true)
 const showScreenMask = ref(false)
 function drawer () {
   // 如果当前是 mini or compact, 点击 drawer 只能以浮层形式进出;
@@ -180,8 +185,12 @@ defineProps<{
       <div style="flex: 1;">
         MailAppViewSize: {{ width }}, {{ height }}
       </div>
-      <div style="margin-right: 4px; cursor: pointer;">
-        <a @click="logout">logout({{ username }})</a>
+      <div class="top-right-corner" v-if="showProfileIcon">
+        <font-awesome-icon icon="user"/>
+        <div class="dropdown-profile">
+          <div style="margin-bottom: 8px;">{{ username }}</div>
+          <div><a @click="logout">logout</a></div>
+        </div>
       </div>
     </div>
     <div class="main">
@@ -190,7 +199,6 @@ defineProps<{
           <li v-for="item in boxList" :key="item.id"
             class="list-item"
             :class="item.id === mailboxInfo.id ? 'focus-item':'normal-item'"
-            style="cursor: pointer;"
             @click.prevent="switchMailbox(item)"
           >
             <span>{{item.name}}</span>
@@ -200,6 +208,10 @@ defineProps<{
             </span>
           </li>
         </ul>
+
+        <div v-if="!showProfileIcon" class="folder-hidden-item">
+          <div class="normal-item list-item" @click="logout">logout</div>
+        </div>
       </div>
       <div v-if="showScreenMask" @click="drawer" class="folder-open-mask"></div>
       <MailView :widthState="layoutState.widthState" :mailbox="mailboxInfo" />
@@ -255,6 +267,23 @@ defineProps<{
   width: 28px;
   height: 24px;
 }
+.top-right-corner {
+  margin-right: 12px;
+}
+.top-right-corner:hover .dropdown-profile {display: block;}
+.dropdown-profile {
+  display: none;
+  position: absolute;
+  right: 0px;
+  text-align: right;
+  padding: 8px;
+  background-color: #d2dbe0;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+.dropdown-profile a {cursor: pointer;}
+
 
 .folder {
   background-color: #344955;
@@ -297,7 +326,7 @@ defineProps<{
 
 
 .normal-item {
-  background-color: #344955;
+  /* background-color: #344955; */
   color: #b4c1cc;
 }
 .normal-item:hover {
@@ -314,5 +343,12 @@ defineProps<{
   font-size: large;
   padding-left: 4px;
   padding-right: 4px;
+  cursor: pointer;
+}
+.folder-hidden-item {
+  border-top: 2px solid #faab1a;
+  margin: 10px;
+  padding-top: 10px;
+  text-align: left;
 }
 </style>
