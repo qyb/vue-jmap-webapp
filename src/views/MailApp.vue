@@ -17,7 +17,6 @@ import { fillMboxList } from '@/utils/mailbox'
 const router = useRouter()
 
 const width = ref(0)
-const height = ref(0)
 const username = ref('')
 const mailboxInfo = reactive({id: PLACEHOLDER_MAILBOXID, total: 0})
 
@@ -55,8 +54,7 @@ function setStateMini () {
 
 function onResize (ele: HTMLElement): void {
   // resize 事件不改动 layoutState.folderState 的值
-  width.value = ele.offsetWidth,
-  height.value = ele.offsetHeight
+  width.value = ele.offsetWidth
 
   if (width.value >= MIN_FULL) {
     if (layoutState.widthState != FULL_STATE) {
@@ -183,7 +181,7 @@ defineProps<{
     <div class="appbar">
       <font-awesome-icon icon="bars" class="btn" @click="drawer"/>
       <div style="flex: 1;">
-        MailAppViewSize: {{ width }}, {{ height }}
+        https://github.com/qyb/vue-jmap-webapp
       </div>
       <div class="top-right-corner" v-if="showProfileIcon">
         <font-awesome-icon icon="user"/>

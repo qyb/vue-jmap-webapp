@@ -144,7 +144,7 @@ function onWatch (state: number): void {
       showListInContent.value = false
     }
   } else {
-    if (threadSubject.value == '') { // 此时 MsgContent 是占位内容
+    if (threadSubject.value == '') { // 此时 MsgContent 是界面初始化时候的占位内容
       showListInContent.value = true
     }
   }
