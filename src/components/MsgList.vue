@@ -49,7 +49,7 @@ function readThread (id: string, index: number, subject: string) {
       <span v-if="totalThreads > 50">
         <button @click="switchPos(paginationData.prevPos)" :disabled="paginationData.prevPos<0">prev</button>
       </span>
-      <span style="flex: 1;">
+      <span style="flex: 1; text-align: center;">
         {{`${totalThreads > 50 ? paginationData.currList : ''}`}}
         {{`${totalThreads} ${totalThreads > 1 ? 'Threads':'Thread'}`}}
       </span>

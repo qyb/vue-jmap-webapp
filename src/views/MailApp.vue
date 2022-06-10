@@ -184,18 +184,18 @@ defineProps<{
 <template>
   <div v-layout:[arg]="onResize" class="appcontainer">
     <div class="appbar">
-      <font-awesome-icon icon="bars" class="btn" @click="drawer"/>
+      <font-awesome-icon icon="bars" class="left-drawer" @click="drawer"/>
       <div style="flex: 1;">
         https://github.com/qyb/vue-jmap-webapp
       </div>
-      <div class="top-right-corner profile" v-if="widthState==FULL_STATE || widthState==NORMAL_STATE">
+      <div class="right-edge profile" v-if="widthState==FULL_STATE || widthState==NORMAL_STATE">
         <font-awesome-icon icon="user"/>
         <div class="dropdown-profile">
           <div style="margin-bottom: 8px;">{{ username }}</div>
           <div><a @click="logout">logout</a></div>
         </div>
       </div>
-      <div class="top-right-corner" v-else-if="widthState==MINI_STATE">
+      <div class="right-edge" v-else-if="widthState==MINI_STATE">
         <font-awesome-icon v-if="!showListInContent" icon="arrow-turn-up" @click="back2List"/>
       </div>
     </div>
@@ -267,15 +267,19 @@ defineProps<{
   color: #232F34;
   align-items: center;
 }
-.appbar .btn {
+.appbar .left-drawer {
   margin-left: 4px;
   margin-top: 4px;
   margin-bottom: 4px;
   width: 28px;
   height: 24px;
 }
-.top-right-corner {
-  margin-right: 12px;
+.appbar .right-edge {
+  margin-right: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  width: 28px;
+  height: 24px;
 }
 .profile {
   display: block;
