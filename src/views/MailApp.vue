@@ -16,60 +16,52 @@ import { fillMboxList } from '@/utils/mailbox'
 
 const router = useRouter()
 
-const width = ref(0)
 const username = ref('')
 const mailboxInfo = reactive({id: PLACEHOLDER_MAILBOXID, total: 0})
 
 // default define as normalview
-const layoutState = {
-  widthState: NORMAL_STATE,
-  folderState: true, // false: 手动隐藏
-}
+const widthState = ref(NORMAL_STATE)
 const folderClass = ref('folder-normal')
 
+let folderState = true // show folder in normal/full width, control by drawer
+
 function setStateFull () {
-  if (layoutState.folderState) {
+  if (folderState) {
     folderClass.value = 'folder-full'
   }
-  layoutState.widthState = FULL_STATE
-  showProfileIcon.value = true
+  widthState.value = FULL_STATE
 }
 function setStateNormal () {
-  if (layoutState.folderState) {
+  if (folderState) {
     folderClass.value = 'folder-normal'
   }
-  layoutState.widthState = NORMAL_STATE
-  showProfileIcon.value = true
+  widthState.value = NORMAL_STATE
 }
 function setStateCompact () {
   folderClass.value = 'folder-hidden'
-  layoutState.widthState = COMPACT_STATE
-  showProfileIcon.value = false
+  widthState.value = COMPACT_STATE
 }
 function setStateMini () {
   folderClass.value = 'folder-hidden'
-  layoutState.widthState = MINI_STATE
-  showProfileIcon.value = false
+  widthState.value = MINI_STATE
 }
 
 function onResize (ele: HTMLElement): void {
-  // resize 事件不改动 layoutState.folderState 的值
-  width.value = ele.offsetWidth
-
-  if (width.value >= MIN_FULL) {
-    if (layoutState.widthState != FULL_STATE) {
+  // resize 事件不改动 folderState 的值
+  if (ele.offsetWidth >= MIN_FULL) {
+    if (widthState.value != FULL_STATE) {
       setStateFull()
     }
-  } else if (width.value >= MIN_NORMAL) {
-    if (layoutState.widthState != NORMAL_STATE) {
+  } else if (ele.offsetWidth >= MIN_NORMAL) {
+    if (widthState.value != NORMAL_STATE) {
       setStateNormal()
     }
-  } else if (width.value >= MIN_COMPACT) {
-    if (layoutState.widthState != COMPACT_STATE) {
+  } else if (ele.offsetWidth >= MIN_COMPACT) {
+    if (widthState.value != COMPACT_STATE) {
       setStateCompact()
     }
   } else {
-    if (layoutState.widthState != MINI_STATE) {
+    if (widthState.value != MINI_STATE) {
       setStateMini()
     }
   }
@@ -82,12 +74,11 @@ function logout () {
   router.push({name: 'login'})
 }
 
-const showProfileIcon = ref(true)
 const showScreenMask = ref(false)
 function drawer () {
   // 如果当前是 mini or compact, 点击 drawer 只能以浮层形式进出;
   // 如果当前是 normal or full, 点击 drawer 占据左侧宽度
-  if (layoutState.widthState < NORMAL_STATE) {
+  if (widthState.value < NORMAL_STATE) {
     if (folderClass.value == 'folder-hidden') {
       folderClass.value = 'folder-hidden open'
       showScreenMask.value = true
@@ -96,9 +87,9 @@ function drawer () {
       showScreenMask.value = false
     }
   } else {
-    layoutState.folderState = !layoutState.folderState
-    if (layoutState.folderState) {
-      folderClass.value = (layoutState.widthState == NORMAL_STATE) ? 'folder-normal' : 'folder-full'
+    folderState = !folderState
+    if (folderState) {
+      folderClass.value = (widthState.value == NORMAL_STATE) ? 'folder-normal' : 'folder-full'
     } else {
       folderClass.value = 'folder-hidden'
     }
@@ -183,7 +174,7 @@ defineProps<{
       <div style="flex: 1;">
         https://github.com/qyb/vue-jmap-webapp
       </div>
-      <div class="top-right-corner" v-if="showProfileIcon">
+      <div class="top-right-corner" v-if="widthState==FULL_STATE || widthState==NORMAL_STATE">
         <font-awesome-icon icon="user"/>
         <div class="dropdown-profile">
           <div style="margin-bottom: 8px;">{{ username }}</div>
@@ -207,12 +198,12 @@ defineProps<{
           </li>
         </ul>
 
-        <div v-if="!showProfileIcon" class="folder-hidden-item">
+        <div v-if="widthState==MINI_STATE || widthState==COMPACT_STATE" class="folder-hidden-item">
           <div class="normal-item list-item" @click="logout">logout</div>
         </div>
       </div>
       <div v-if="showScreenMask" @click="drawer" class="folder-open-mask"></div>
-      <MailView :widthState="layoutState.widthState" :mailbox="mailboxInfo" />
+      <MailView :widthState="widthState" :mailbox="mailboxInfo" />
     </div>
   </div>
 </template>
