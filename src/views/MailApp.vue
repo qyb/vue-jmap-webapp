@@ -99,6 +99,8 @@ function drawer () {
 function switchMailbox (arg: MailboxItem): void {
   mailboxInfo.id = arg.id
   mailboxInfo.total = arg.props?.totalThreads as number
+
+  showListInContent.value = true // always show msglist
 }
 
 const boxList: Array<MailboxItem>  = reactive([])
@@ -161,6 +163,18 @@ onMounted(() => {
   }
 })
 
+const showListInContent = ref(false)
+function readEvent(readThread: boolean): void {
+  if (readThread) {
+    showListInContent.value = false
+  } else {
+    showListInContent.value = true
+  }
+}
+function back2List(): void {
+  showListInContent.value = true
+}
+
 defineProps<{
   arg: string
 }>()
@@ -174,12 +188,15 @@ defineProps<{
       <div style="flex: 1;">
         https://github.com/qyb/vue-jmap-webapp
       </div>
-      <div class="top-right-corner" v-if="widthState==FULL_STATE || widthState==NORMAL_STATE">
+      <div class="top-right-corner profile" v-if="widthState==FULL_STATE || widthState==NORMAL_STATE">
         <font-awesome-icon icon="user"/>
         <div class="dropdown-profile">
           <div style="margin-bottom: 8px;">{{ username }}</div>
           <div><a @click="logout">logout</a></div>
         </div>
+      </div>
+      <div class="top-right-corner" v-else-if="widthState==MINI_STATE">
+        <font-awesome-icon v-if="!showListInContent" icon="arrow-turn-up" @click="back2List"/>
       </div>
     </div>
     <div class="main">
@@ -203,7 +220,8 @@ defineProps<{
         </div>
       </div>
       <div v-if="showScreenMask" @click="drawer" class="folder-open-mask"></div>
-      <MailView :widthState="widthState" :mailbox="mailboxInfo" />
+      <MailView :widthState="widthState" :mailbox="mailboxInfo"
+        @contextMenu="readEvent" :back="showListInContent"/>
     </div>
   </div>
 </template>
@@ -259,7 +277,10 @@ defineProps<{
 .top-right-corner {
   margin-right: 12px;
 }
-.top-right-corner:hover .dropdown-profile {display: block;}
+.profile {
+  display: block;
+}
+.profile:hover .dropdown-profile {display: block;}
 .dropdown-profile {
   display: none;
   position: absolute;

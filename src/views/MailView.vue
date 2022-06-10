@@ -15,9 +15,14 @@ import { fillThreadContents, genDownloadUrl, replaceCID } from '@/utils/readmail
 import { fillMsgList } from '@/utils/listmail'
 import { JAttachment } from '@/utils/jclient'
 
+const emit = defineEmits<{
+  (e: 'contextMenu', readThread: boolean): void
+}>()
+
 const props = defineProps<{
   widthState: number
   mailbox: MailboxInfo
+  back: boolean
 }>()
 
 const msgcontent_id = 'msgcontent' // use msgcontent_id to scrollTo top (0,0)
@@ -74,6 +79,7 @@ function readThread (id: string, subject: string) {
   threadSubject.value = subject ? subject:NULL_SUBJECT
   if (!showList.value) {
     showListInContent.value = !showListInContent.value
+    emit('contextMenu', true)
   }
   $globalState.jclient?.thread_get($globalState.accountId, id).then(list => {
     if (fillThreadContents(list, msgContents, inlineBlobList)) {
@@ -130,6 +136,15 @@ watch(
   }
 )
 
+watch(
+  () => props.back,
+  (newArg, oldArg) => {
+    if (newArg) {
+      showListInContent.value = true
+    }
+  }
+)
+
 const showList = ref(true)
 const msglistClass = ref('msglist-full')
 const showListInContent = ref(false)
@@ -142,10 +157,12 @@ function onWatch (state: number): void {
   if (showList.value) {
     if (showListInContent.value) {
       showListInContent.value = false
+      emit('contextMenu', true)
     }
   } else {
     if (threadSubject.value == '') { // 此时 MsgContent 是界面初始化时候的占位内容
       showListInContent.value = true
+      emit('contextMenu', false)
     }
   }
 }
@@ -171,7 +188,6 @@ watch(
         v-if="showListInContent" />
       <div v-else>
         <div class="thread-header">
-          <span v-if="!showList"><button @click="showListInContent=!showListInContent">back</button></span>
           <span class="thread-subject">{{ threadSubject }}</span>
           <span v-if="hasMediaContent">
             <button @click="showMediaContent=!showMediaContent; toggleMediaTips=showMediaContent?'disable media':'show media'">

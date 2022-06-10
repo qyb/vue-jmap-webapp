@@ -4,12 +4,14 @@ import {
   faPaperclip,
   faBars,
   faUser,
+  faArrowTurnUp,
 } from "@fortawesome/free-solid-svg-icons"
 
 library.add(
   faPaperclip,
   faBars,
-  faUser
+  faUser,
+  faArrowTurnUp,
 )
 
 export default FontAwesomeIcon
