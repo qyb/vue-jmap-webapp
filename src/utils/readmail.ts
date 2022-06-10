@@ -87,7 +87,7 @@ export function fillThreadContents(list: IEmailProperties[],
 
             for (let i = 0; i < images.length; i++) {
               if (!images[i].src.startsWith('cid:')) {
-                images[i].src = ''
+                images[i].src = '/block.gif'
                 images[i].srcset = ''
               }
             }
