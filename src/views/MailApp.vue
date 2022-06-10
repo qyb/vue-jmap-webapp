@@ -100,7 +100,9 @@ function switchMailbox (arg: MailboxItem): void {
   mailboxInfo.id = arg.id
   mailboxInfo.total = arg.props?.totalThreads as number
 
-  showListInContent.value = true // always show msglist
+  if (widthState.value == MINI_STATE) {
+    showListInContent.value = true // always show msglist
+  }
 }
 
 const boxList: Array<MailboxItem>  = reactive([])
