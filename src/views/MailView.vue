@@ -76,13 +76,14 @@ const msgContents:ThreadContents = reactive([])
 function readThread (id: string, subject: string) {
   initMediaUI()
 
-  threadSubject.value = subject ? subject:NULL_SUBJECT
-  if (widthState.value == MINI_STATE) {
-    showListInContent.value = false
-    emit('contextMenu', true)
-  }
   $globalState.jclient?.thread_get($globalState.accountId, id).then(list => {
-    if (fillThreadContents(list, msgContents, inlineBlobList)) {
+    threadSubject.value = subject ? subject:NULL_SUBJECT
+    if (widthState.value == MINI_STATE) {
+      showListInContent.value = false
+      emit('contextMenu', true)
+    }
+
+if (fillThreadContents(list, msgContents, inlineBlobList)) {
       hasMediaContent.value = true
     }
 
