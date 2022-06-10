@@ -80,14 +80,17 @@ function logout () {
   router.push({name: 'login'})
 }
 
+const showScreenMask = ref(false)
 function drawer () {
   // 如果当前是 mini or compact, 点击 drawer 只能以浮层形式进出;
   // 如果当前是 normal or full, 点击 drawer 占据左侧宽度
   if (layoutState.widthState < NORMAL_STATE) {
     if (folderClass.value == 'folder-hidden') {
       folderClass.value = 'folder-hidden open'
+      showScreenMask.value = true
     } else {
       folderClass.value = 'folder-hidden'
+      showScreenMask.value = false
     }
   } else {
     layoutState.folderState = !layoutState.folderState
@@ -198,6 +201,7 @@ defineProps<{
           </li>
         </ul>
       </div>
+      <div v-if="showScreenMask" @click="drawer" class="folder-open-mask"></div>
       <MailView :widthState="layoutState.widthState" :mailbox="mailboxInfo" />
     </div>
   </div>
@@ -264,7 +268,6 @@ defineProps<{
 .folder-hidden {
   position: absolute;
   z-index:1000;
-  box-shadow:5px 0px 10px rgba(0,0,0,.2);
   left: -198px;
   width: 198px;
   max-width: 198px;
@@ -272,8 +275,14 @@ defineProps<{
   transition: all 0.3s;
 }
 .folder-hidden.open {
-  height: calc(100% - 32px); /* 当 Drawer 弹出时的高度 */
   left: 0px;
+}
+.folder-open-mask {
+  position: absolute;
+  width: 100%;
+  height: calc(100% - 32px); /* 当 Drawer 弹出时的高度 */
+  background: rgba(0,0,0,.5);
+  z-index: 500;
 }
 
 .folder-normal {
