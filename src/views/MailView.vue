@@ -4,7 +4,7 @@
   所以 List/Content 的数据都封装在这里完成
  */
 import { onMounted, watch, reactive, ref, nextTick } from 'vue'
-import { MINI_STATE, FULL_STATE } from '@/utils/screen'
+import { MINI_STATE, FULL_STATE, NORMAL_STATE } from '@/utils/screen'
 import { PLACEHOLDER_MAILBOXID, NULL_SUBJECT,
   MessageLIST, MsgListPagination,
   ThreadContents, MailboxInfo,
@@ -77,8 +77,8 @@ function readThread (id: string, subject: string) {
   initMediaUI()
 
   threadSubject.value = subject ? subject:NULL_SUBJECT
-  if (!showList.value) {
-    showListInContent.value = !showListInContent.value
+  if (widthState.value == MINI_STATE) {
+    showListInContent.value = false
     emit('contextMenu', true)
   }
   $globalState.jclient?.thread_get($globalState.accountId, id).then(list => {
@@ -128,7 +128,7 @@ watch(
     renderMailbox(newArg)
     totalThreads.value = newArg.total
 
-    if (!showList.value) { // MINI STATE
+    if (widthState.value == MINI_STATE) {
       if (!showListInContent.value) {
         showListInContent.value = true
       }
@@ -145,16 +145,13 @@ watch(
   }
 )
 
-const showList = ref(true)
-const msglistClass = ref('msglist-full')
+const widthState = ref(NORMAL_STATE)
 const showListInContent = ref(false)
 function onWatch (state: number): void {
-  // 首先修改 MsgList 的样式
-  showList.value = state > MINI_STATE
-  msglistClass.value = state == FULL_STATE ? 'msglist-full' : 'msglist-normal'
+  widthState.value = state
 
   // 其次判断 MsgContent 界面是否展示 MsgList 组件
-  if (showList.value) {
+  if (state > MINI_STATE) {
     if (showListInContent.value) {
       showListInContent.value = false
       emit('contextMenu', true)
@@ -179,7 +176,7 @@ watch(
     <MsglistView :msgList="msgList" :totalThreads="totalThreads" :paginationData="paginationData"
       @page="switchPos"
       @read="readThread"
-      :class="msglistClass" v-if="showList" />
+      :class="widthState == FULL_STATE ? 'msglist-full' : 'msglist-normal'" v-if="widthState > MINI_STATE" />
 
     <div class="msgcontent" :id="msgcontent_eleid">
       <MsglistView :msgList="msgList" :totalThreads="totalThreads" :paginationData="paginationData"
