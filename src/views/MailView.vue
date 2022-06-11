@@ -34,12 +34,10 @@ const msgcontent_eleid = ref(msgcontent_id)
 
 const hasMediaContent = ref(false)
 const showMediaContent = ref(false)
-const toggleMediaTips = ref('show media')
 const inlineBlobList = new Set<string>()
 function initMediaUI() {
   hasMediaContent.value = false
   showMediaContent.value = false
-  toggleMediaTips.value = 'show media'
   inlineBlobList.clear()
 }
 
@@ -187,12 +185,14 @@ watch(
         v-if="showListInContent" />
       <div v-else>
         <div class="thread-header">
-          <span class="thread-subject">{{ threadSubject }}</span>
-          <span v-if="hasMediaContent">
-            <button @click="showMediaContent=!showMediaContent; toggleMediaTips=showMediaContent?'disable media':'show media'">
-              {{toggleMediaTips}}
+          <div class="thread-subject">{{ threadSubject }}</div>
+          <div v-if="hasMediaContent && !showMediaContent" class="remote-resource-warning">
+            <font-awesome-icon icon="triangle-exclamation"/>
+            To protect your privacy remote resources have been blocked.
+            <button @click="showMediaContent=true">
+              allow
             </button>
-          </span>
+          </div>
         </div>
         <div class="thread-email" v-for="(item, index) in msgContents" :key="item.msgId">
           <div @click="toggleCollapse(index)" class="thread-email-header">
@@ -244,18 +244,18 @@ watch(
 }
 
 .thread-header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  /*height: 24px; */
   padding-left: 6px;
+  padding-right: 6px;
   margin-top: 12px;
 }
 
 .thread-subject {
-  flex: 1;
   font-size: x-large;
+}
+.remote-resource-warning {
+  margin: 4px;
+  padding: 4px;
+  background-color: #edf0f2; /* msglist background-color */
 }
 
 .thread-email {

@@ -5,6 +5,7 @@ import {
   faBars,
   faUser,
   faArrowTurnUp,
+  faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons"
 
 library.add(
@@ -12,6 +13,7 @@ library.add(
   faBars,
   faUser,
   faArrowTurnUp,
+  faTriangleExclamation,
 )
 
 export default FontAwesomeIcon
