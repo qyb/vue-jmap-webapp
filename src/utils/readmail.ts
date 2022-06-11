@@ -12,7 +12,7 @@ function removeElementsByTagName(doc: Document, tag: string) {
 
 /*
  * return value
- *   true: one or more email has MediaContent
+ *   true: one or more email has RemoteResource
  *   false: only safeContent
  *
  * it's a html body filter, remove dangerous content and get ready for cid:xxxxx replacement
@@ -83,7 +83,7 @@ export function fillThreadContents(list: IEmailProperties[],
               }
             }
 
-            const withMediaHTML = doc.documentElement.innerHTML
+            const withRemoteResourceHTML = doc.documentElement.innerHTML
 
             for (let i = 0; i < images.length; i++) {
               if (!images[i].src.startsWith('cid:')) {
@@ -94,7 +94,7 @@ export function fillThreadContents(list: IEmailProperties[],
 
             const safeContent = doc.documentElement.innerHTML
 
-            if (safeContent != withMediaHTML) {
+            if (safeContent != withRemoteResourceHTML) {
               ret = true // it's a global state for all emails in the thread
             }
             body.push({
@@ -102,7 +102,7 @@ export function fillThreadContents(list: IEmailProperties[],
               partId: htmlBodyPartId,
               preview: doc.body.innerText.slice(0, previewLength),
               safeContent: safeContent,
-              withMediaContent: safeContent == withMediaHTML ? undefined : withMediaHTML
+              withRemoteResource: safeContent == withRemoteResourceHTML ? undefined : withRemoteResourceHTML
             })
           }
         }

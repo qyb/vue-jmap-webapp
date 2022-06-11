@@ -32,12 +32,12 @@ const props = defineProps<{
 const msgcontent_id = 'msgcontent' // use msgcontent_id to scrollTo top (0,0)
 const msgcontent_eleid = ref(msgcontent_id)
 
-const hasMediaContent = ref(false)
-const showMediaContent = ref(false)
+const hasRemoteResource = ref(false)
+const showRemoteResource = ref(false)
 const inlineBlobList = new Set<string>()
 function initMediaUI() {
-  hasMediaContent.value = false
-  showMediaContent.value = false
+  hasRemoteResource.value = false
+  showRemoteResource.value = false
   inlineBlobList.clear()
 }
 
@@ -86,7 +86,7 @@ function readThread (id: string, subject: string) {
     }
 
     if (fillThreadContents(list, msgContents, inlineBlobList)) {
-      hasMediaContent.value = true
+      hasRemoteResource.value = true
     }
 
     if (msgContents.length > 0) {
@@ -186,10 +186,10 @@ watch(
       <div v-else>
         <div class="thread-header">
           <div class="thread-subject">{{ threadSubject }}</div>
-          <div v-if="hasMediaContent && !showMediaContent" class="remote-resource-warning">
+          <div v-if="hasRemoteResource && !showRemoteResource" class="remote-resource-warning">
             <font-awesome-icon icon="triangle-exclamation"/>
             To protect your privacy remote resources have been blocked.
-            <button @click="showMediaContent=true">
+            <button @click="showRemoteResource=true">
               allow
             </button>
           </div>
@@ -209,7 +209,7 @@ watch(
             <div v-for="body in item.body" :key="body.partId">
               <div v-if="body.txt" class="like-pre" v-text="body.safeContent"></div>
               <div v-else class="normal-block">
-                <div v-if="showMediaContent && body.withMediaContent" v-html="body.withMediaContent"></div>
+                <div v-if="showRemoteResource && body.withRemoteResource" v-html="body.withRemoteResource"></div>
                 <div v-else v-html="body.safeContent"></div>
               </div>
             </div>

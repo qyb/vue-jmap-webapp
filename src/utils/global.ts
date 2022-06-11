@@ -54,7 +54,7 @@ export declare type MsgListPagination = {
 export declare type BodyMixed = Array<{
   partId: string
   safeContent: string
-  withMediaContent?: string
+  withRemoteResource?: string
   preview: string
   txt: boolean
 }>
