@@ -17,6 +17,7 @@ import { JAttachment } from '@/utils/jclient'
 
 const emit = defineEmits<{
   /*
+   * request MailApp.vue show or hide the back2List icon
    * request: true, show back2List icon
    * request: false, hide it
    */
@@ -151,7 +152,6 @@ const showListInContent = ref(false)
 function onWatch (state: number): void {
   widthState.value = state
 
-  // 其次判断 MsgContent 界面是否展示 MsgList 组件
   if (state == MINI_STATE) {
     if (threadSubject.value == '') { // 此时 MsgContent 是界面初始化时候的占位内容
       showListInContent.value = true
@@ -160,6 +160,8 @@ function onWatch (state: number): void {
       showListInContent.value = false
       emit('contextMenu', true)
     }
+  } else {
+    showListInContent.value = false
   }
 }
 
