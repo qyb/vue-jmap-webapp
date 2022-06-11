@@ -16,13 +16,17 @@ import { fillMsgList } from '@/utils/listmail'
 import { JAttachment } from '@/utils/jclient'
 
 const emit = defineEmits<{
-  (e: 'contextMenu', readThread: boolean): void
+  /*
+   * request: true, show back2List icon
+   * request: false, hide it
+   */
+  (e: 'contextMenu', request: boolean): void
 }>()
 
 const props = defineProps<{
   widthState: number
   mailbox: MailboxInfo
-  back: boolean
+  miniState: boolean // true: msgList; false: msgContent;
 }>()
 
 const msgcontent_id = 'msgcontent' // use msgcontent_id to scrollTo top (0,0)
@@ -83,7 +87,7 @@ function readThread (id: string, subject: string) {
       emit('contextMenu', true)
     }
 
-if (fillThreadContents(list, msgContents, inlineBlobList)) {
+    if (fillThreadContents(list, msgContents, inlineBlobList)) {
       hasMediaContent.value = true
     }
 
@@ -128,18 +132,16 @@ watch(
   (newArg, oldArg) => {
     renderMailbox(newArg)
     totalThreads.value = newArg.total
-
-    if (widthState.value == MINI_STATE) {
-      if (!showListInContent.value) {
-        showListInContent.value = true
-      }
-    }
+    // when MailApp.vue change 'props.mailbox', it will change 'props.miniState' to `true`
+    // that be watched by next lines, and set 'showListInContent' to `true`
   }
 )
 
 watch(
-  () => props.back,
+  () => props.miniState,
   (newArg, oldArg) => {
+    // the operation in MailApp.vue only generate `TRUE`-miniState/msgList-in-MiniUI signal
+    // ignore `newArg == false` here
     if (newArg) {
       showListInContent.value = true
     }
@@ -152,18 +154,17 @@ function onWatch (state: number): void {
   widthState.value = state
 
   // 其次判断 MsgContent 界面是否展示 MsgList 组件
-  if (state > MINI_STATE) {
-    if (showListInContent.value) {
-      showListInContent.value = false
-      emit('contextMenu', true)
-    }
-  } else {
+  if (state == MINI_STATE) {
     if (threadSubject.value == '') { // 此时 MsgContent 是界面初始化时候的占位内容
       showListInContent.value = true
       emit('contextMenu', false)
+    } else {
+      showListInContent.value = false
+      emit('contextMenu', true)
     }
   }
 }
+
 watch(
   () => props.widthState,
   (newState, oldState) => {

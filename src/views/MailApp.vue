@@ -101,7 +101,7 @@ function switchMailbox (arg: MailboxItem): void {
   mailboxInfo.total = arg.props?.totalThreads as number
 
   if (widthState.value == MINI_STATE) {
-    showListInContent.value = true // always show msglist
+    msgListInMiniUI.value = true // remove back2List icon
   }
 }
 
@@ -165,16 +165,15 @@ onMounted(() => {
   }
 })
 
-const showListInContent = ref(false)
-function readEvent(readThread: boolean): void {
-  if (readThread) {
-    showListInContent.value = false
-  } else {
-    showListInContent.value = true
+const msgListInMiniUI = ref(false)
+function showBack2List(request: boolean): void {
+  if (widthState.value == MINI_STATE) {
+    msgListInMiniUI.value = !request
   }
 }
+
 function back2List(): void {
-  showListInContent.value = true
+  msgListInMiniUI.value = true
 }
 
 defineProps<{
@@ -198,7 +197,7 @@ defineProps<{
         </div>
       </div>
       <div class="right-edge" v-else-if="widthState==MINI_STATE">
-        <font-awesome-icon v-if="!showListInContent" icon="arrow-turn-up" @click="back2List"/>
+        <font-awesome-icon v-if="!msgListInMiniUI" icon="arrow-turn-up" @click="back2List"/>
       </div>
     </div>
     <div class="main">
@@ -223,7 +222,7 @@ defineProps<{
       </div>
       <div v-if="showScreenMask" @click="drawer" class="folder-open-mask"></div>
       <MailView :widthState="widthState" :mailbox="mailboxInfo"
-        @contextMenu="readEvent" :back="showListInContent"/>
+        @contextMenu="showBack2List" :miniState="msgListInMiniUI"/>
     </div>
   </div>
 </template>
