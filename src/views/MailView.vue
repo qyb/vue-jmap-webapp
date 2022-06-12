@@ -266,15 +266,17 @@ watch(
         display: flex;
         align-items: center;
         justify-content: center;">
-        <div style="width: 80%; height: 80%; background-color: #fefefe; display: flex; flex-direction: column;">
+        <div style="background-color: #fefefe; display: flex; flex-direction: column;"
+          :class="widthState == MINI_STATE?'mini-modal-content':'normal-modal-content'">
           <div class="appbar">
             <span style="color: #d2dbe0;">CenterIt</span>
             <span style="vertical-align: middle;">Email Header Detail...</span>
             <button @click="showModal=false" style="float: right; margin-right: 6px;">close</button>
           </div>
-          <div style="flex: 1; margin: 6px; overflow-y: auto;" class="like-pre">{{headerLines}}</div>
-          <div style="border-top: 1px solid #4A6572; padding-top: 4px; padding-bottom: 4px; text-align: center;">
-            <button @click="downloadEml" >download original email</button>
+          <div style="flex: 1; margin: 6px; overflow-y: auto;" class="as-pre">{{headerLines}}</div>
+          <div style="display: flex; justify-content: center; align-items: center;
+            height: 32px; border-top: 1px solid #4A6572; ">
+            <button style="" @click="downloadEml" >download email</button>
           </div>
         </div>
       </div>
@@ -360,7 +362,7 @@ watch(
   cursor: pointer;
 }
 
-.like-pre {
+.like-pre { /* for text/plain mailView */
   white-space: pre-wrap;
   word-break: break-all;
   font-family: monospace;
@@ -368,5 +370,18 @@ watch(
 .normal-block {
   white-space: normal;
   word-break: break-all;
+}
+.as-pre { /* for headerView */
+  white-space: pre;
+  word-break: break-all;
+  font-family: monospace;
+}
+.normal-modal-content {
+  height: 80%;
+  width: 80%;
+}
+.mini-modal-content {
+  height: 100%;
+  width: 100%;
 }
 </style>

@@ -12,9 +12,10 @@ Now it's at an early stage with a few functions: login(auth), list mailboxes, li
 
 1. Message Read (2022 Jun)
     * ~~threads UI~~ **Done.**
-    * email context menu: header viewer, full .eml download...
+    * ~~email context menu: header viewer, full .eml download...~~
     * ~~attachment download~~ **Done.**
-    * html content filter & inline img
+    * ~~html content filter & inline img~~ **Done.**
+    * try put my patch into https://github.com/linagora/jmap-client-ts
 
 2. Message Operation (2022 Jun)
     * create mailbox
