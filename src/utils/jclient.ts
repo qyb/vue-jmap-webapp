@@ -221,8 +221,8 @@ export class JClient {
             path: '/list/*/emailIds',
             resultOf: '0'
           },
-          properties: [ 'threadId', 'mailboxIds', 'from', 'subject', 'keywords', 'preview', 'attachments',
-            'receivedAt', 'header:List-POST:asURLs',
+          properties: [ 'blobId', 'threadId', 'mailboxIds', 'from', 'subject', 'keywords', 'preview', 'attachments',
+            'receivedAt', 'headers',
             'htmlBody', 'bodyValues'],
           bodyProperties: [ 'partId', 'blobId', 'size', 'type', 'cid',
             'name', /* for attachment download */

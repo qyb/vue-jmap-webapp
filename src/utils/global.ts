@@ -1,4 +1,4 @@
-import { IEmailAddress, IMailboxProperties } from 'jmap-client-ts/lib/types'
+import { EmailHeader, IEmailAddress, IMailboxProperties } from 'jmap-client-ts/lib/types'
 import { JAttachment, JClient } from '@/utils/jclient'
 
 interface globalState {
@@ -66,6 +66,7 @@ export declare type ThreadContents = Array<{
   collapse: boolean
   preview: string
   attachments: JAttachment[]
+  headers: EmailHeader[]
   body: BodyMixed
 }>
 export declare type MailboxInfo = {

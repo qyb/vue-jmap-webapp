@@ -101,7 +101,11 @@ function readThread (id: string, subject: string) {
     })
   })
 }
+const showModal = ref(false)
+const headerLines = ref('')
 function headerView(index: number): void {
+  headerLines.value = msgContents[index].headers.map(item=>item.name + item.value).join('\r\n')
+  showModal.value = true
 }
 
 function downloadAtt(attachment: JAttachment): void {
@@ -233,6 +237,23 @@ watch(
                 <span :title="`size: ${att.size}`" @click="downloadAtt(att)">{{ att.name }}</span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="showModal"
+        style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); z-index: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;">
+        <div style="width: 80%; height: 80%; background-color: #fefefe; display: flex; flex-direction: column;">
+          <div class="appbar">
+            <span style="color: #d2dbe0;">CenterIt</span>
+            <span style="vertical-align: middle;">Email Header Detail...</span>
+            <button @click="showModal=false" style="float: right; margin-right: 6px;">close</button>
+          </div>
+          <div style="flex: 1; margin: 6px; overflow-y: auto;" class="like-pre">{{headerLines}}</div>
+          <div style="border-top: 1px solid #4A6572; padding-top: 4px; padding-bottom: 4px; text-align: center;">
+            <button @click="showModal=false" >download original email</button>
           </div>
         </div>
       </div>

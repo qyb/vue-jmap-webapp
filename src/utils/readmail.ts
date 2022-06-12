@@ -136,6 +136,7 @@ export function fillThreadContents(list: IEmailProperties[],
       collapse: flag,
       preview: email.preview,
       attachments: attachments,
+      headers: email.headers? email.headers : [],
       body: body
     })
   })
