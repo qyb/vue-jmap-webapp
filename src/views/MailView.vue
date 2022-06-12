@@ -14,6 +14,7 @@ import MsglistView from '@/components/MsgList.vue'
 import { fillThreadContents, genDownloadUrl, replaceCID } from '@/utils/readmail'
 import { fillMsgList } from '@/utils/listmail'
 import { JAttachment } from '@/utils/jclient'
+import { fuzzyDatetime, downloadFName } from '@/utils/common'
 
 const emit = defineEmits<{
   /*
@@ -76,6 +77,10 @@ function toggleCollapse(index: number) {
 }
 
 const msgContents:ThreadContents = reactive([])
+let now: number
+function _fuzzyDatetime(datetime: Date) {
+  return fuzzyDatetime(now, datetime)
+}
 function readThread (id: string, subject: string) {
   initMediaUI()
 
@@ -89,6 +94,7 @@ function readThread (id: string, subject: string) {
     if (fillThreadContents(list, msgContents, inlineBlobList)) {
       hasRemoteResource.value = true
     }
+    now = (new Date()).getTime()
 
     if (msgContents.length > 0) {
       const last = msgContents.length - 1
@@ -103,24 +109,39 @@ function readThread (id: string, subject: string) {
 }
 const showModal = ref(false)
 const headerLines = ref('')
+const eml = {
+  blobId: '',
+  name: '',
+}
 function headerView(index: number): void {
-  headerLines.value = msgContents[index].headers.map(item=>item.name + item.value).join('\r\n')
+  headerLines.value = msgContents[index].headers.map(item=>`${item.name}:${item.value}`).join('\r\n')
+  eml.blobId = msgContents[index].blobId
+  const subject = msgContents[index].subject == ''? NULL_SUBJECT:msgContents[index].subject
+  const datetime = msgContents[index].receivedAt
+  eml.name = `${datetime.getFullYear()}-${datetime.getMonth()}-${datetime.getDay()} ${downloadFName(subject)}.eml`
   showModal.value = true
 }
-
-function downloadAtt(attachment: JAttachment): void {
-  const downloadUrl = genDownloadUrl(attachment.blobId, attachment.name, attachment.type)
+function download(downloadUrl: string, fname: string): void {
   $globalState.jclient?.blob_data(downloadUrl).then(response => {
     if (response.ok) {
       response.blob().then(blob=>{
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
-        link.download = attachment.name
+        link.download = fname
         link.click()
         URL.revokeObjectURL(link.href)
       })
     }
   })
+}
+function downloadEml(): void {
+  const downloadUrl = genDownloadUrl(eml.blobId, eml.name, 'message/rfc822')
+  download(downloadUrl, eml.name)
+}
+
+function downloadAtt(attachment: JAttachment): void {
+  const downloadUrl = genDownloadUrl(attachment.blobId, attachment.name, attachment.type)
+  download(downloadUrl, attachment.name)
 }
 
 onMounted(() => {
@@ -213,10 +234,10 @@ watch(
             </div>
             <!-- collect elements in ONE-DIV to avoid flex-space-between -->
             <div v-if="item.collapse">
-              <span class="thread-email-date">{{item.receivedAt}}</span>
+              <span class="thread-email-date">{{_fuzzyDatetime(item.receivedAt)}}</span>
             </div>
             <div v-else>
-              <span class="thread-email-date">{{item.receivedAt}}</span>
+              <span class="thread-email-date">{{_fuzzyDatetime(item.receivedAt)}}</span>
               <span class="thread-email-context">
                 <font-awesome-icon icon="envelope-open-text" style="padding-left: 6px;" @click.stop="headerView(index)" />
               </span>
@@ -253,7 +274,7 @@ watch(
           </div>
           <div style="flex: 1; margin: 6px; overflow-y: auto;" class="like-pre">{{headerLines}}</div>
           <div style="border-top: 1px solid #4A6572; padding-top: 4px; padding-bottom: 4px; text-align: center;">
-            <button @click="showModal=false" >download original email</button>
+            <button @click="downloadEml" >download original email</button>
           </div>
         </div>
       </div>

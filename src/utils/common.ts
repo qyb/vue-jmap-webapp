@@ -25,3 +25,7 @@ export function fuzzyDatetime (now: number, arg: Date): string {
   }
   return fuzzy
 }
+
+export function downloadFName(original: string): string {
+  return original.replaceAll('/', '-').replaceAll('\\', '-')
+}

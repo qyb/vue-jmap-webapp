@@ -1,6 +1,6 @@
 import { IEmailProperties, IEmailBodyValue } from "jmap-client-ts/lib/types";
 import { ThreadContents, BodyMixed, $globalState } from "./global";
-import { fuzzyDatetime } from '@/utils/common'
+import { downloadFName } from '@/utils/common'
 import {fixAddr, JAttachment} from '@/utils/jclient'
 
 function removeElementsByTagName(doc: Document, tag: string) {
@@ -23,7 +23,6 @@ export function fillThreadContents(list: IEmailProperties[],
   let ret = false
   const previewLength = 100
 
-  const now = (new Date()).getTime()
   msgContents.length = 0
   list.forEach((email, index, array) => {
     const body:BodyMixed = []
@@ -122,7 +121,7 @@ export function fillThreadContents(list: IEmailProperties[],
       email.attachments.forEach(attachment=>{
         let att = (attachment as unknown) as JAttachment
         if (att.disposition == 'attachment') {
-          att.name = att.name.replaceAll('/', '-').replaceAll('\\', '-')
+          att.name = downloadFName(att.name)
           attachments.push(att)
         }
       })
@@ -131,12 +130,14 @@ export function fillThreadContents(list: IEmailProperties[],
     msgContents.push({
       msgId: email.id,
       from: email.from && email.from.length > 0 ?  fixAddr(email.from[0]): {name: 'null name', email: 'null address'},
-      receivedAt: fuzzyDatetime(now, datetime),
+      receivedAt: datetime,
       $seen: flag,
       collapse: flag,
       preview: email.preview,
       attachments: attachments,
       headers: email.headers? email.headers : [],
+      blobId: email.blobId,
+      subject: email.subject,
       body: body
     })
   })

@@ -61,12 +61,14 @@ export declare type BodyMixed = Array<{
 export declare type ThreadContents = Array<{
   msgId: string
   from: IEmailAddress
-  receivedAt: string
+  receivedAt: Date
   $seen: boolean
   collapse: boolean
   preview: string
   attachments: JAttachment[]
   headers: EmailHeader[]
+  blobId: string
+  subject: string
   body: BodyMixed
 }>
 export declare type MailboxInfo = {
