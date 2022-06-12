@@ -2,13 +2,15 @@
 
 a JMAP webmail by vue3/typescript.
 
-It was trying to implement a responsive layout/UI likes Outlook Web App. [screen capture video](https://youtu.be/jOY5z8KJYxw)
+It was trying to implement a responsive layout/UI likes Outlook Web App.
+  * [demo video 1, UI is adaptive for different screen widths.](https://youtu.be/jOY5z8KJYxw)
+  * [demo video 2, emulate in the phone browser](https://www.youtube.com/watch?v=7j6srSi-Md4)
 
 Now it's at an early stage with a few functions: login(auth), list mailboxes, list threads, read message.
 
 ## a full-functional webmail need to be implemented (development schedule)
 
-0. ~~Prepare a demo-site (2022 May)~~ **Done. visit [Demo](https://bwh1.rubyfish.app/)**
+0. ~~Prepare a demo-site (2022 May)~~ **Done. visit [Demo Site](https://bwh1.rubyfish.app/)**
 
 1. Message Read (2022 Jun)
     * ~~threads UI~~ **Done.**
