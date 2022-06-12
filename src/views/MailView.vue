@@ -101,6 +101,8 @@ function readThread (id: string, subject: string) {
     })
   })
 }
+function headerView(index: number): void {
+}
 
 function downloadAtt(attachment: JAttachment): void {
   const downloadUrl = genDownloadUrl(attachment.blobId, attachment.name, attachment.type)
@@ -205,7 +207,16 @@ watch(
             <div v-else>
               <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
             </div>
-            <span class="thread-email-date">{{item.receivedAt}}</span>
+            <!-- collect elements in ONE-DIV to avoid flex-space-between -->
+            <div v-if="item.collapse">
+              <span class="thread-email-date">{{item.receivedAt}}</span>
+            </div>
+            <div v-else>
+              <span class="thread-email-date">{{item.receivedAt}}</span>
+              <span class="thread-email-context">
+                <font-awesome-icon icon="envelope-open-text" style="padding-left: 6px;" @click.stop="headerView(index)" />
+              </span>
+            </div>
           </div>
           <div class="thread-email-content" v-show="!item.collapse">
             <div v-for="body in item.body" :key="body.partId">
