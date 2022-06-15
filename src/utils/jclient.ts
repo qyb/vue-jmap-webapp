@@ -1,53 +1,16 @@
 import { Client } from 'jmap-client-ts/lib'
 import {
-  IInvocationName,
-  IReplaceableAccountId,
-  IGetArguments,
-  ISetArguments,
+
   IQueryArguments,
-  IChangesArguments,
   IEmailFilterCondition,
-  IEmailQueryArguments, IEmailGetArguments,
+  IEmailGetArguments,
   IEmailGetResponse, IMailboxSetResponse,
-  IEntityProperties, IEmailProperties, IEmailAddress, IEmailKeywords, Attachment,
+  IEmailProperties, IEmailAddress, IEmailKeywords, Attachment, IInvocation,
 } from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
-/*
-  jmapweb:main.ts 将 jmap-client-ts 又做了一层封装
-  其中颇有一些值得借鉴的地方, 比如一次 HTTP 多个请求/响应的解析封装
- */
-
-type JInvocationName = IInvocationName | 'Thread/get'
-export type JInvocation<ArgumentsType> = [
-  name: JInvocationName,
-  arguments: ArgumentsType,
-  methodCallId: string
-]
-
-interface JEmailQueryArguments extends IEmailQueryArguments {
-  collapseThreads?: boolean
-  properties?: Array<string>
-}
-interface JThreadQueryHelper {
-  accountId: string,
-  '#ids': {
-    resultOf: string,
-    name: JInvocationName,
-    path: string
-  }
-}
-type JThreadQueryArguments = JEmailQueryArguments | JThreadQueryHelper
-
-export type JArguments =
-  | IGetArguments<IEntityProperties>  // 似乎如果直接用 IArguments 无法推导出 type|null 中的 null 类型，怀疑是 VSCode 的 bug
-  | ISetArguments<IEntityProperties>
-  | IQueryArguments<IEmailFilterCondition>
-  | IChangesArguments
-  | IEmailGetArguments                // TODO: req 只需要有一个抽象接口 IGetArguments<IEntityProperties> 就可以，将来想办法去掉这里的定义
-  | JThreadQueryArguments
 
 type ErrorResponse = Array<string | {'type': string}>
-type JInvocationResponse = Array<JInvocation<IEmailGetResponse> | JInvocation<IMailboxSetResponse> | ErrorResponse>
+type JInvocationResponse = Array<IInvocation<IEmailGetResponse> | IInvocation<IMailboxSetResponse> | ErrorResponse>
 type JResponse = IEmailGetResponse | IMailboxSetResponse
 
 export interface JAttachment {
@@ -71,6 +34,7 @@ export class JClient {
     this.client = new Client({
       accessToken: '',
       sessionUrl: '/jmap',
+      // sessionUrl: '/.well-known/jmap',
       transport: transport,
       httpHeaders: {
         'Content-Type': 'application/json',
@@ -91,7 +55,7 @@ export class JClient {
   }
 
   // TODO: 这里的 requests 和 promise 日后需要继续扩充类型定义
-  public req (requests: JInvocation<JArguments>[]): Promise<JResponse[]> {
+  public req (requests: IInvocation<IEmailGetArguments | IQueryArguments<IEmailFilterCondition>>[]): Promise<JResponse[]> {
     const session = this.client.getSession()
     return new Promise((resolve, reject) => {
       this.transport.post<{
