@@ -5,7 +5,7 @@ import {
   IEmailFilterCondition,
   IEmailGetArguments,
   IEmailGetResponse, IMailboxSetResponse,
-  IEmailProperties, IEmailAddress, IEmailKeywords, Attachment, IInvocation,
+  IEmailProperties, IEmailAddress, IEmailKeywords, Attachment, IInvocation, IMethodName, IEntityProperties, IReplaceableAccountId,
 } from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
 
@@ -20,6 +20,33 @@ export interface JAttachment {
   name: string
   type: string
   disposition: string
+}
+
+type JEmailQueryArguments = IQueryArguments<IEmailFilterCondition> & {
+  collapseThreads?: boolean;
+}
+
+/**
+ * See https://jmap.io/spec-core.html#references-to-previous-method-results
+ */
+export interface IResultReference {
+  resultOf: string;
+  name: IMethodName;
+  path: string;
+}
+
+interface JGetArguments<Properties extends IEntityProperties> extends IReplaceableAccountId {
+  ids?: string[] | null;
+  '#ids'?: IResultReference;
+  properties?: (keyof Properties)[];
+}
+
+interface JEmailGetArguments extends JGetArguments<IEmailProperties> {
+  bodyProperties?: string[];
+  fetchTextBodyValues?: boolean;
+  fetchHTMLBodyValues?: boolean;
+  fetchAllBodyValues?: boolean;
+  maxBodyValueBytes?: number;
 }
 
 export class JClient {
@@ -55,7 +82,7 @@ export class JClient {
   }
 
   // TODO: 这里的 requests 和 promise 日后需要继续扩充类型定义
-  public req (requests: IInvocation<IEmailGetArguments | IQueryArguments<IEmailFilterCondition>>[]): Promise<JResponse[]> {
+  public req (requests: IInvocation<JEmailGetArguments | JEmailQueryArguments>[]): Promise<JResponse[]> {
     const session = this.client.getSession()
     return new Promise((resolve, reject) => {
       this.transport.post<{

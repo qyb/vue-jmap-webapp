@@ -332,7 +332,7 @@ is-core-module@^2.8.1:
 
 "jmap-client-ts@https://bitbucket.org/qyb/jmap-client-ts":
   version "1.0.0"
-  resolved "https://bitbucket.org/qyb/jmap-client-ts#5b674f74ac881cef11875195eea73620ab070afb"
+  resolved "https://bitbucket.org/qyb/jmap-client-ts#72e3ebed9280877b691e732272e4ef7436a8b898"
 
 magic-string@^0.25.7:
   version "0.25.9"
