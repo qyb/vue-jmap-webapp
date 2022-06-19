@@ -1,18 +1,18 @@
 import { Client } from 'jmap-client-ts/lib'
 import {
-
-  IQueryArguments,
-  IEmailFilterCondition,
-  IEmailGetArguments,
-  IEmailGetResponse, IMailboxSetResponse,
-  IEmailProperties, IEmailAddress, IEmailKeywords, Attachment, IInvocation, IMethodName, IEntityProperties, IReplaceableAccountId,
+  IEmailGetResponse,
+  IEmailProperties, IEmailAddress, IEmailKeywords,
+  Attachment,
 } from 'jmap-client-ts/lib/types'
 import { Transport } from 'jmap-client-ts/lib/utils/transport';
 
-type ErrorResponse = Array<string | {'type': string}>
-type JInvocationResponse = Array<IInvocation<IEmailGetResponse> | IInvocation<IMailboxSetResponse> | ErrorResponse>
-type JResponse = IEmailGetResponse | IMailboxSetResponse
-
+/**
+ * TODO pull request
+ *  1. download
+ *  2. attachment
+ *
+ * TODO default session endpoint change to /.well-known/jmap
+ */
 export interface JAttachment {
   partId: string
   blobId: string
@@ -20,33 +20,6 @@ export interface JAttachment {
   name: string
   type: string
   disposition: string
-}
-
-type JEmailQueryArguments = IQueryArguments<IEmailFilterCondition> & {
-  collapseThreads?: boolean;
-}
-
-/**
- * See https://jmap.io/spec-core.html#references-to-previous-method-results
- */
-export interface IResultReference {
-  resultOf: string;
-  name: IMethodName;
-  path: string;
-}
-
-interface JGetArguments<Properties extends IEntityProperties> extends IReplaceableAccountId {
-  ids?: string[] | null;
-  '#ids'?: IResultReference;
-  properties?: (keyof Properties)[];
-}
-
-interface JEmailGetArguments extends JGetArguments<IEmailProperties> {
-  bodyProperties?: string[];
-  fetchTextBodyValues?: boolean;
-  fetchHTMLBodyValues?: boolean;
-  fetchAllBodyValues?: boolean;
-  maxBodyValueBytes?: number;
 }
 
 export class JClient {
@@ -70,52 +43,9 @@ export class JClient {
     })
   }
 
-  public setAccessToken (arg: string): void {
-    this.accessToken = arg
-  }
-
-  public getCapabilities () {
-    const session = this.client.getSession()
-    return session.capabilities ?
-      Object.keys(session.capabilities) :
-      ['urn:ietf:params:jmap:core', 'urn:ietf:params:jmap:mail']
-  }
-
-  // TODO: 这里的 requests 和 promise 日后需要继续扩充类型定义
-  public req (requests: IInvocation<JEmailGetArguments | JEmailQueryArguments>[]): Promise<JResponse[]> {
-    const session = this.client.getSession()
-    return new Promise((resolve, reject) => {
-      this.transport.post<{
-        sessionState: string
-        methodResponses: JInvocationResponse
-      }>(session.apiUrl, { // 相比较 jmap-client-ts 的 IRequest 类型, 这里拆解出来了
-        using: this.getCapabilities(),
-        methodCalls: requests // 相当于 jmap-client-ts 的 IInvocation<IArguments>[] 类型
-      }, {
-        Accept: 'application/json;jmapVersion=rfc-8621',
-        'Content-Type': 'application/json',
-        Authorization: this.accessToken == '' ?
-          this.authorizationHeader : 'Bearer ' + this.accessToken
-      }).then(value => {
-        const result: Array<JResponse> = []
-        // console.log('response sessionState: %s', value.sessionState)
-        value.methodResponses.forEach((item, index, array) => {
-          if (item[0] === 'error') {
-            throw item[1]
-          } else {
-            result.push(item[1] as JResponse)
-          }
-        })
-        resolve(result)
-      }, reason => {
-        reject(reason)
-      })
-    })
-  }
-
   public msglist_get (accountId: string|null, mailboxId: string, pos: number): Promise<IEmailProperties[]> {
     return new Promise((resolve, reject) => {
-      this.req([
+      this.client.limitedMethods([
         // First we do a query for the id of first N messages in the mailbox
         ['Email/query', {
           accountId: accountId,
@@ -192,15 +122,13 @@ export class JClient {
           thread.attachments = attachments
         })
         resolve(response.list)
-      }, reason => {
-        reject(reason)
       })
     })
   }
 
   public thread_get (accountId: string|null, threadId: string): Promise<IEmailProperties[]> {
     return new Promise((resolve, reject) => {
-      this.req([
+      this.client.limitedMethods([
         ['Thread/get', {
           accountId: accountId,
           ids: [threadId]
@@ -223,8 +151,6 @@ export class JClient {
       ]).then(value => {
         const response = value[1] as IEmailGetResponse
         resolve(response.list)
-      }, reason => {
-        reject(reason)
       })
     })
   }
