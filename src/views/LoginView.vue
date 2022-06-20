@@ -4,11 +4,6 @@ import { useRouter, useRoute } from 'vue-router'
 
 import { $globalState } from '@/utils/global'
 import { JClient } from '@/utils/jclient'
-import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
-const transport = new XmlHttpRequestTransport(() => {
-  let r = new XMLHttpRequest()
-  return r;
-})
 
 const router = useRouter()
 const route = useRoute()
@@ -18,7 +13,7 @@ const tips = reactive({commitDate: '', commitVersion: '', info: ''})
 
 function fetchSession (authorizationHeader: string, isSubmit: boolean): void {
   const login = window.atob(authorizationHeader.split(' ')[1]).split(':')[0]
-  const jclient = new JClient(transport, authorizationHeader)
+  const jclient = new JClient(authorizationHeader)
   jclient.client.fetchSession().then(() => {
     let session = jclient.client.getSession()
     let accountId = jclient.client.getFirstAccountId()

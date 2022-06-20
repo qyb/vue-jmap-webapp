@@ -4,14 +4,12 @@ import {
   IEmailProperties, IEmailAddress, IEmailKeywords,
   Attachment,
 } from 'jmap-client-ts/lib/types'
-import { Transport } from 'jmap-client-ts/lib/utils/transport';
+import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
 
 /**
  * TODO pull request
  *  1. download
  *  2. attachment
- *
- * TODO default session endpoint change to /.well-known/jmap
  */
 export interface JAttachment {
   partId: string
@@ -24,18 +22,18 @@ export interface JAttachment {
 
 export class JClient {
   client: Client
-  transport: Transport
   authorizationHeader: string
   accessToken: string = ''
 
-  constructor (transport: Transport, authorizationHeader: string) {
-    this.transport = transport
+  constructor (authorizationHeader: string) {
     this.authorizationHeader = authorizationHeader
     this.client = new Client({
       accessToken: '',
-      sessionUrl: '/jmap',
-      // sessionUrl: '/.well-known/jmap',
-      transport: transport,
+      sessionUrl: '/.well-known/jmap',
+      transport: new XmlHttpRequestTransport(() => {
+        let r = new XMLHttpRequest()
+        return r;
+      }),
       httpHeaders: {
         'Content-Type': 'application/json',
         Authorization: authorizationHeader
