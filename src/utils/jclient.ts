@@ -4,7 +4,7 @@ import {
   IEmailProperties, IEmailAddress, IEmailKeywords,
   Attachment,
 } from 'jmap-client-ts/lib/types'
-import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
+import { Transport } from 'jmap-client-ts/lib/utils/transport'
 
 /**
  * TODO pull request
@@ -25,15 +25,12 @@ export class JClient {
   authorizationHeader: string
   accessToken: string = ''
 
-  constructor (authorizationHeader: string) {
+  constructor (transport: Transport, authorizationHeader: string) {
     this.authorizationHeader = authorizationHeader
     this.client = new Client({
       accessToken: '',
       sessionUrl: '/.well-known/jmap',
-      transport: new XmlHttpRequestTransport(() => {
-        let r = new XMLHttpRequest()
-        return r;
-      }),
+      transport: transport,
       httpHeaders: {
         'Content-Type': 'application/json',
         Authorization: authorizationHeader
