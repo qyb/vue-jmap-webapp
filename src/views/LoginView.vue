@@ -19,7 +19,7 @@ function fetchSession (authorizationHeader: string, isSubmit: boolean): void {
   const jclient = new JClient(transport, authorizationHeader)
   jclient.client.fetchSession().then(() => {
     let session = jclient.client.getSession()
-    let accountId = jclient.client.getFirstAccountId()
+    let accountId = jclient.client.getPersonalAccountId()
 
     let accountCapabilities = session.accounts[accountId].accountCapabilities
     console.log("Account Capabilities: %s %o", accountId, accountCapabilities)

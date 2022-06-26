@@ -31,6 +31,7 @@ const props = defineProps<{
   miniState: boolean // true: msgList; false: msgContent;
 }>()
 
+let currentAccountId: string | null = null
 const msgcontent_id = 'msgcontent' // use msgcontent_id to scrollTo top (0,0)
 const msgcontent_eleid = ref(msgcontent_id)
 
@@ -56,7 +57,8 @@ const paginationData: MsgListPagination = reactive({
 })
 
 function renderMailbox (mailbox: MailboxInfo, pos: number = 0): void {
-  $globalState.jclient?.msglist_get($globalState.accountId, mailbox.id, pos)
+  currentAccountId = mailbox.accountId
+  $globalState.jclient?.msglist_get(mailbox.accountId, mailbox.id, pos)
   .then(list=>{
     fillMsgList(list, mailbox, pos, msgList, paginationData)
   })
@@ -84,7 +86,7 @@ function _fuzzyDatetime(datetime: Date) {
 function readThread (id: string, subject: string) {
   initMediaUI()
 
-  $globalState.jclient?.thread_get($globalState.accountId, id).then(list => {
+  $globalState.jclient?.thread_get(currentAccountId, id).then(list => {
     threadSubject.value = subject ? subject:NULL_SUBJECT
     if (widthState.value == MINI_STATE) {
       showListInContent.value = false

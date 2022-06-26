@@ -74,6 +74,7 @@ export declare type ThreadContents = Array<{
 export declare type MailboxInfo = {
   id: string
   total: number
+  accountId: string | null
 }
 export declare type MailboxItem = {
   name: string

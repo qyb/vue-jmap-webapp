@@ -10,14 +10,14 @@ import {
  } from '@/utils/screen';
 import MailView from './MailView.vue'
 import { IMailboxSetArguments } from 'jmap-client-ts/lib/types'
-import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem } from '@/utils/global'
+import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem, MailboxInfo } from '@/utils/global'
 import { Client } from 'jmap-client-ts'
 import { fillMboxList } from '@/utils/mailbox'
 
 const router = useRouter()
 
 const username = ref('')
-const mailboxInfo = reactive({id: PLACEHOLDER_MAILBOXID, total: 0})
+const mailboxInfo: MailboxInfo = reactive({id: PLACEHOLDER_MAILBOXID, total: 0, accountId: null})
 
 // default define as normalview
 const widthState = ref(NORMAL_STATE)
@@ -96,8 +96,9 @@ function drawer () {
   }
 }
 
-function switchMailbox (arg: MailboxItem): void {
+function switchMailbox (arg: MailboxItem, accountId: string | null = $globalState.accountId): void {
   mailboxInfo.id = arg.id
+  mailboxInfo.accountId = accountId
   mailboxInfo.total = arg.props?.totalThreads as number
 
   if (widthState.value == MINI_STATE) {
@@ -105,7 +106,13 @@ function switchMailbox (arg: MailboxItem): void {
   }
 }
 
-const boxList: Array<MailboxItem>  = reactive([])
+const boxList: Array<MailboxItem> = reactive([])
+
+interface otherMailbox {
+  accountId: string
+  boxList: Array<MailboxItem>
+}
+const otherAccounts: Array<otherMailbox> = reactive([])
 
 onMounted(() => {
   const h = getClientHeight()
@@ -127,7 +134,6 @@ onMounted(() => {
     const client: Client = $globalState.jclient.client
     client.mailbox_get({
       accountId: $globalState.accountId,
-      ids: null,
     }).then(result => {
       console.log(result)
       const fixSpecialUSE:IMailboxSetArguments = {
@@ -153,12 +159,40 @@ onMounted(() => {
       if (boxList.length > 0) {
         mailboxInfo.id = boxList[0].id
         mailboxInfo.total = boxList[0].props?.totalThreads as number
+        mailboxInfo.accountId = $globalState.accountId
       } else {
         console.error('no available mailbox')
       }
 
     }).catch(error => {
       console.error(error.message)
+    })
+
+    client.getAccountIds().forEach(accountId => {
+      if (accountId != $globalState.accountId) {
+        client.mailbox_get({
+          accountId: accountId,
+        }).then(result => {
+          if (result.list.length > 0) {
+            const mb: otherMailbox = {
+              accountId: accountId,
+              boxList: []
+            }
+            result.list.forEach(item => {
+              mb.boxList.push({
+                name: item.name,
+                id: item.id,
+                props: item,
+                role: ''
+              })
+            })
+            otherAccounts.push(mb)
+            console.log(otherAccounts)
+          }
+        }).catch(error => {
+          console.error(error.message)
+        })
+      }
     })
   } else {
     console.error('MailApp failure: %o', $globalState)
@@ -204,7 +238,7 @@ defineProps<{
       <div :class="folderClass" class="folder">
         <ul>
           <li v-for="item in boxList" :key="item.id"
-            class="list-item"
+            class="list-item primary-item"
             :class="item.id === mailboxInfo.id ? 'focus-item':'normal-item'"
             @click.prevent="switchMailbox(item)"
           >
@@ -215,6 +249,26 @@ defineProps<{
             </span>
           </li>
         </ul>
+
+        <div v-if="otherAccounts.length > 0" class="other-account">
+          <div style="margin-left: 4px; margin-bottom: 2px;">
+            Shared Accounts
+          </div>
+          <ul v-for="account in otherAccounts" :key="account.accountId">
+            <li v-for="item in account.boxList" :key="item.id"
+              class="list-item"
+              :class="item.id === mailboxInfo.id ? 'focus-item':'normal-item'"
+              @click.prevent="switchMailbox(item, account.accountId)"
+            >
+              <span>{{ `${account.accountId}.${item.name}`}}</span>
+              <span v-if="item.props && item.props.unreadThreads > 0"
+                style="float: right;">
+                ({{item.props?.unreadThreads}})
+              </span>
+            </li>
+          </ul>
+
+        </div>
 
         <div v-if="widthState==MINI_STATE || widthState==COMPACT_STATE" class="folder-hidden-item">
           <div class="normal-item list-item" @click="logout">logout</div>
@@ -353,17 +407,32 @@ defineProps<{
   color: #344955;
 }
 .list-item {
-  height: 28px;
-  line-height: 28px;
-  font-size: large;
   padding-left: 4px;
   padding-right: 4px;
   cursor: pointer;
+}
+.primary-item {
+  height: 28px;
+  line-height: 28px;
+  font-size: large;
 }
 .folder-hidden-item {
   border-top: 2px solid #faab1a;
   margin: 10px;
   padding-top: 10px;
   text-align: left;
+}
+
+.other-account {
+  text-align: left;
+  font-size: large;
+  margin-right: 10px;
+  margin-left: 10px;
+}
+.other-account ul {
+  margin-top: 2px;
+  margin-bottom: 0px;
+  font-size: medium;
+  margin-right: 0px;
 }
 </style>
