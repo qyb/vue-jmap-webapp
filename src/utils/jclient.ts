@@ -7,7 +7,7 @@ import {
 import { Transport } from 'jmap-client-ts/lib/utils/transport'
 
 /**
- * TODO pull request
+ * TODO pull request.  should remove 'accept: application/json' header
  *  1. download
  *  2. attachment
  */
@@ -25,11 +25,11 @@ export class JClient {
   authorizationHeader: string
   accessToken: string = ''
 
-  constructor (transport: Transport, authorizationHeader: string) {
+  constructor (transport: Transport, authorizationHeader: string, sessionUrl: string = '/.well-known/jmap') {
     this.authorizationHeader = authorizationHeader
     this.client = new Client({
+      sessionUrl: sessionUrl,
       accessToken: '',
-      sessionUrl: '/.well-known/jmap',
       transport: transport,
       httpHeaders: {
         'Content-Type': 'application/json',
