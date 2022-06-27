@@ -46,7 +46,7 @@ vite.config.ts define the JMAP backend of your dev environment.
 
 Optional: create .env.local with `VITE_DEFAULT_DOMAIN=yourdefaultdomain`. see [.env Files](https://vitejs.dev/guide/env-and-mode.html#env-files)
 
-###
+### JMAP Protocol
 
 cyrus-imapd 3.4.x is my JMAP backend.
 
