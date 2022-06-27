@@ -17,7 +17,8 @@ Now it's at an early stage with a few functions: login(auth), list mailboxes, li
     * ~~email context menu: header viewer, full .eml download...~~ **Done.**
     * ~~attachment download~~ **Done.**
     * ~~html content filter & inline img~~ **Done.**
-    * try put my patch into https://github.com/linagora/jmap-client-ts
+    * ~~[patch 1](https://github.com/linagora/jmap-client-ts/pull/63), [patch 2](https://github.com/linagora/jmap-client-ts/pull/65)~~ try put my patch into https://github.com/linagora/jmap-client-ts
+    * ~~list shared mailbox from other account~~ **Done.**
 
 2. Message Operation (2022 Jun)
     * create mailbox
@@ -44,6 +45,12 @@ It's a vue3 project, and depends vite as the dev/build server.
 vite.config.ts define the JMAP backend of your dev environment.
 
 Optional: create .env.local with `VITE_DEFAULT_DOMAIN=yourdefaultdomain`. see [.env Files](https://vitejs.dev/guide/env-and-mode.html#env-files)
+
+###
+
+cyrus-imapd 3.4.x is my JMAP backend.
+
+I maintain a patch-branch https://github.com/qyb/jmap-client-ts/tree/vue-jmap-webapp of LINAGORA's [jmap-client-ts](https://github.com/linagora/jmap-client-ts) for this project. And I'll try to merge all changes into the upstream at my best.
 
 ### Recommended IDE Setup
 
