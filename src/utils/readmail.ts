@@ -145,38 +145,24 @@ export function fillThreadContents(list: IEmailProperties[],
   return ret
 }
 
-export function genDownloadUrl(blobId:string, fname:string, type:string): string {
-  let url = $globalState.jclient?.client.getSession().downloadUrl as string
-  let accountId = $globalState.accountId as string
-  let downloadUrl = url.replace('{accountId}', encodeURIComponent(accountId))
-      .replace('{blobId}', encodeURIComponent(blobId))
-      .replace('{name}', encodeURIComponent(fname))
-      .replace('{type}', encodeURIComponent(type))
-  return downloadUrl
-}
-
 export function replaceCID(inlineBlobList: Set<string>): void {
   for (let item of inlineBlobList) {
     const inlineBlob = item.split(' ')
     const type = inlineBlob[1]
     const blobId = inlineBlob[0]
 
-    const downloadUrl = genDownloadUrl(blobId, 'foo.bar', type)
-    $globalState.jclient?.blob_data(downloadUrl).then(response => {
-      if (response.ok) {
-        response.blob().then(blob=>{
-          const reader = new FileReader()
-          reader.onloadend = () => {
-            const elements = document.getElementsByClassName(blobId)
-            for (let i = 0; i < elements.length; i++) {
-              const element = elements[i] as HTMLImageElement
-              element.src = reader.result as string
-              // console.log(element.src)
-            }
-          }
-          reader.readAsDataURL(blob)
-        })
+    let accountId = $globalState.accountId as string
+    $globalState.jclient?.client.download(accountId, blobId, 'foo.bar', type).then(blob => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const elements = document.getElementsByClassName(blobId)
+        for (let i = 0; i < elements.length; i++) {
+          const element = elements[i] as HTMLImageElement
+          element.src = reader.result as string
+          // console.log(element.src)
+        }
       }
+      reader.readAsDataURL(blob)
     })
   }
 }

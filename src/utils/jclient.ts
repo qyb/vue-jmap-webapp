@@ -149,15 +149,6 @@ export class JClient {
       })
     })
   }
-
-  public blob_data (url: string): Promise<Response> {
-    return fetch(url, {
-      headers: {
-        Authorization: this.accessToken == '' ?
-        this.authorizationHeader : 'Bearer ' + this.accessToken
-      }
-    })
-  }
 }
 
 export function fixAddr(addr: IEmailAddress): IEmailAddress {

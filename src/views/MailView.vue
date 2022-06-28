@@ -11,7 +11,7 @@ import { PLACEHOLDER_MAILBOXID, NULL_SUBJECT,
   $globalState
 } from '@/utils/global'
 import MsglistView from '@/components/MsgList.vue'
-import { fillThreadContents, genDownloadUrl, replaceCID } from '@/utils/readmail'
+import { fillThreadContents, replaceCID } from '@/utils/readmail'
 import { fillMsgList } from '@/utils/listmail'
 import { JAttachment } from '@/utils/jclient'
 import { fuzzyDatetime, downloadFName } from '@/utils/common'
@@ -123,27 +123,21 @@ function headerView(index: number): void {
   eml.name = `${datetime.getFullYear()}-${datetime.getMonth()}-${datetime.getDay()} ${downloadFName(subject)}.eml`
   showModal.value = true
 }
-function download(downloadUrl: string, fname: string): void {
-  $globalState.jclient?.blob_data(downloadUrl).then(response => {
-    if (response.ok) {
-      response.blob().then(blob=>{
-        const link = document.createElement('a')
-        link.href = URL.createObjectURL(blob)
-        link.download = fname
-        link.click()
-        URL.revokeObjectURL(link.href)
-      })
-    }
+function download(blobId: string, fname: string, type: string): void {
+  let accountId = $globalState.accountId as string
+  $globalState.jclient?.client.download(accountId, blobId, fname, type).then(blob => {
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = fname
+    link.click()
+    URL.revokeObjectURL(link.href)
   })
 }
 function downloadEml(): void {
-  const downloadUrl = genDownloadUrl(eml.blobId, eml.name, 'message/rfc822')
-  download(downloadUrl, eml.name)
+  download(eml.blobId, eml.name, 'message/rfc822')
 }
-
 function downloadAtt(attachment: JAttachment): void {
-  const downloadUrl = genDownloadUrl(attachment.blobId, attachment.name, attachment.type)
-  download(downloadUrl, attachment.name)
+  download(attachment.blobId, attachment.name, attachment.type)
 }
 
 onMounted(() => {
