@@ -145,13 +145,13 @@ export function fillThreadContents(list: IEmailProperties[],
   return ret
 }
 
-export function replaceCID(inlineBlobList: Set<string>): void {
+export function replaceCID(currentAccountId: string | null, inlineBlobList: Set<string>): void {
   for (let item of inlineBlobList) {
     const inlineBlob = item.split(' ')
     const type = inlineBlob[1]
     const blobId = inlineBlob[0]
 
-    let accountId = $globalState.accountId as string
+    let accountId = currentAccountId as string
     $globalState.jclient?.client.download(accountId, blobId, 'foo.bar', type).then(blob => {
       const reader = new FileReader()
       reader.onloadend = () => {

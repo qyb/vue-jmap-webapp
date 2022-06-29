@@ -104,7 +104,7 @@ function readThread (id: string, subject: string) {
     }
 
     nextTick(()=> {
-      replaceCID(inlineBlobList)
+      replaceCID(currentAccountId, inlineBlobList)
       document.getElementById(msgcontent_id)?.scrollTo(0, 0)
     })
   })
@@ -124,7 +124,7 @@ function headerView(index: number): void {
   showModal.value = true
 }
 function download(blobId: string, fname: string, type: string): void {
-  let accountId = $globalState.accountId as string
+  let accountId = currentAccountId as string
   $globalState.jclient?.client.download(accountId, blobId, fname, type).then(blob => {
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
