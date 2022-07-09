@@ -104,6 +104,10 @@ function readThread (id: string, subject: string) {
     }
 
     nextTick(()=> {
+      /**
+       * replaceCID use document.getElementsByClassName(blobId), it should be called after
+       * reactive-objects have been render as HTMLElements.
+       **/
       replaceCID(currentAccountId, inlineBlobList)
       document.getElementById(msgcontent_id)?.scrollTo(0, 0)
     })
