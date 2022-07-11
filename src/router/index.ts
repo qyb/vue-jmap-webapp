@@ -4,7 +4,7 @@ const appRoutes = [
   {
     path: '/app/mail',
     name: 'mail',
-    component: () => import('@/views/MailApp.vue'),
+    component: () => import('@/views/ThreadView.vue'),
     meta: { title: 'Mail' },
     props: true,
   },
@@ -30,8 +30,9 @@ const routes = [
       {
         path: '/app',
         name: 'app',
-        component: () => import('@/components/null.vue'),
+        component: () => import('@/components/WebApp.vue'),
         meta: { title: 'App' },
+        props: { arg: 'webapp' }, // v-layout needs `arg` prop
         redirect: '/app/mail',
         children: appRoutes
       },

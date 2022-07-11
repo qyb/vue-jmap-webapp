@@ -83,16 +83,6 @@ function readThread (id: string, index: number, subject: string) {
   margin-right: 4px;
 }
 
-.msglist-normal {
-  width: 350px;
-  max-width: 350px;
-}
-
-.msglist-full {
-  width: 376px;
-  max-width: 380px;
-}
-
 .single-line {
   white-space:nowrap;
   overflow: hidden;
