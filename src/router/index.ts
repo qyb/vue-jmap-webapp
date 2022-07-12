@@ -6,7 +6,12 @@ const appRoutes = [
     name: 'mail',
     component: () => import('@/views/ThreadView.vue'),
     meta: { title: 'Mail' },
-    props: true,
+  },
+  {
+    path: '/app/mailbox',
+    name: 'mailbox',
+    component: () => import('@/components/null.vue'),
+    meta: { title: 'Mailbox' },
   },
 ]
 

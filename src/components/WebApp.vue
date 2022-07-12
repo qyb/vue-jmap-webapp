@@ -108,6 +108,7 @@ function routerPushMail() {
 }
 
 function switchMailbox (arg: MailboxItem, accountId: string | null = $globalState.accountId): void {
+  clearFocus()
   mailboxInfo.id = arg.id
   mailboxInfo.accountId = accountId
   mailboxInfo.total = arg.props?.totalThreads as number
@@ -235,6 +236,19 @@ defineProps<{
   arg: string
 }>()
 
+const focusManageFolders = ref(false)
+function clearFocus() {
+  focusManageFolders.value = false
+  mailboxInfo.id = PLACEHOLDER_MAILBOXID
+}
+
+function clickManageFolders() {
+  clearFocus()
+  focusManageFolders.value = true
+  router.push({
+    name: 'mailbox',
+  })
+}
 </script>
 
 <template>
@@ -257,7 +271,7 @@ defineProps<{
     </div>
     <div class="main">
       <div :class="folderClass" class="folder">
-        <ul>
+        <ul class="function-block">
           <li v-for="item in boxList" :key="item.id"
             class="list-item primary-item"
             :class="item.id === mailboxInfo.id ? 'focus-item':'normal-item'"
@@ -271,8 +285,8 @@ defineProps<{
           </li>
         </ul>
 
-        <div v-if="otherAccounts.length > 0" class="other-account">
-          <div style="margin-left: 4px; margin-bottom: 2px;">
+        <div v-if="otherAccounts.length > 0" class="function-block">
+          <div class="secondary-block primary-item">
             Shared Accounts
           </div>
           <ul v-for="account in otherAccounts" :key="account.accountId">
@@ -288,7 +302,20 @@ defineProps<{
               </span>
             </li>
           </ul>
+        </div>
 
+        <div class="function-block">
+          <div class="secondary-block primary-item">
+            Settings
+          </div>
+          <ul>
+            <li class="list-item"
+              :class="focusManageFolders ? 'focus-item':'normal-item'"
+              @click="clickManageFolders()"
+            >
+              Manage Folders
+            </li>
+          </ul>
         </div>
 
         <div v-if="store.widthState<=COMPACT_STATE" class="folder-hidden-item">
@@ -378,9 +405,11 @@ defineProps<{
   background-color: #344955;
   color: #b4c1cc;
 }
-.folder ul {
+.function-block {
   margin-right: 10px;
   margin-left: 10px;
+  margin-top: 16px;
+  margin-bottom: 16px;
 }
 
 .folder-hidden {
@@ -435,6 +464,7 @@ defineProps<{
   height: 28px;
   line-height: 28px;
   font-size: large;
+  text-align: left;
 }
 .folder-hidden-item {
   border-top: 2px solid #faab1a;
@@ -443,14 +473,13 @@ defineProps<{
   text-align: left;
 }
 
-.other-account {
-  text-align: left;
-  font-size: large;
-  margin-right: 10px;
-  margin-left: 10px;
+.secondary-block {
+  margin-left: 4px;
+  margin-bottom: 1px;
 }
-.other-account ul {
-  margin-top: 2px;
+.function-block ul {
+  margin-top: 1px;
+  margin-left: 6px;
   margin-bottom: 0px;
   font-size: medium;
   margin-right: 0px;
