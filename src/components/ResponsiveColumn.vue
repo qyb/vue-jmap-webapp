@@ -22,13 +22,12 @@ watch(
 
 const contextMenu = inject('contextMenu') as contextMenuFunc
 
-let rightHasContent = true
 watch(
   () => store.widthState,
   (newState, oldState) => {
     if (newState == MINI_STATE) {
       // emit `contextMenu` in toolbar
-      if (rightHasContent) {
+      if (store.focusRightColumn) {
         showLeftInRight.value = false
         contextMenu(true)
       } else {

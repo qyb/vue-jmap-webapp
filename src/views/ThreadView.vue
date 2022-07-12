@@ -31,7 +31,7 @@ function initMediaUI() {
 }
 
 const threadSubject = ref('') // current Thread
-
+store.focusRightColumn = false
 
 // next three variables pass to MsgList component
 const totalThreads = ref(0)
@@ -74,6 +74,7 @@ function readThread (id: string, subject: string) {
   initMediaUI()
 
   $globalState.jclient?.thread_get(currentAccountId, id).then(list => {
+    store.focusRightColumn = true
     threadSubject.value = subject ? subject:NULL_SUBJECT
     if (store.widthState == MINI_STATE) {
       contextMenu(true)
