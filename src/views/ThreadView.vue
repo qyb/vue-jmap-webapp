@@ -19,7 +19,7 @@ const contextMenu = inject('contextMenu') as contextMenuFunc
 const route = useRoute()
 
 let currentAccountId: string | null = null
-const msgcontent_id = 'right-column' // use msgcontent_id to scrollTo top (0,0)
+const msgcontent_id = 'msgcontent' // use msgcontent_id to scrollTo top (0,0)
 
 const hasRemoteResource = ref(false)
 const showRemoteResource = ref(false)
@@ -163,7 +163,7 @@ watch(
       @page="switchPos"
       @read="readThread" />
     </template>
-    <template v-slot:right>
+    <template v-slot:right><div style="overflow-y: auto; height: 100%;" :id="msgcontent_id">
       <div class="thread-header">
         <div class="thread-subject">{{ threadSubject }}</div>
         <div v-if="hasRemoteResource && !showRemoteResource" class="remote-resource-warning">
@@ -230,7 +230,7 @@ watch(
           </div>
         </div>
       </div>
-    </template>
+    </div></template>
   </ResponsiveColumn>
 </template>
 

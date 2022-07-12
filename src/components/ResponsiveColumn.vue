@@ -57,7 +57,7 @@ onMounted(() => {
     <div v-if="store.widthState > MINI_STATE" :class="store.widthState == FULL_STATE ? 'full-left' : 'normal-left'">
       <slot name="left"></slot>
     </div>
-    <div class="right-column" id="right-column">
+    <div class="right-column">
       <slot v-if="showLeftInRight" name="left"></slot>
       <slot v-else name="right"></slot>
     </div>
@@ -76,7 +76,6 @@ onMounted(() => {
   background-color: #fefefe;
   color: #344955;
   width: 0; /* 防止被子元素撑出横向滚动条 */
-  overflow-y: auto;
   text-align: left;
 }
 
