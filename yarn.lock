@@ -330,9 +330,9 @@ is-core-module@^2.8.1:
   dependencies:
     has "^1.0.3"
 
-"jmap-client-ts@https://bitbucket.org/qyb/jmap-client-ts#a7c40da30e0759637891ee2d6dea8d6114b32fc0":
+"jmap-client-ts@https://bitbucket.org/qyb/jmap-client-ts#b401f578575c51ce49ecb519ca3a836cf7c0c2e3":
   version "1.0.0"
-  resolved "https://bitbucket.org/qyb/jmap-client-ts#a7c40da30e0759637891ee2d6dea8d6114b32fc0"
+  resolved "https://bitbucket.org/qyb/jmap-client-ts#b401f578575c51ce49ecb519ca3a836cf7c0c2e3"
 
 magic-string@^0.25.7:
   version "0.25.9"
