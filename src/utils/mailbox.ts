@@ -11,6 +11,8 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
     {name: 'Junk', id: '', role: 'junk'},
   ]
 
+  const fixObj: {[id: string]: Partial<IMailboxProperties>} = {}
+
   let noRoleBoxList: Array<IMailboxProperties> = []
   for (let box of list) {
     let matched = false
@@ -20,6 +22,11 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
           item.props = box
           item.id = box.id
           matched = true
+          if (!box.isSubscribed) {
+            item.props.isSubscribed = true // always true
+            const patchObj: Partial<IMailboxProperties> = {isSubscribed: true}
+            fixObj[box.id] = patchObj
+          }
           return
         }
       })
@@ -41,7 +48,6 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
     }
   }
 
-  const fixObj: {[id: string]: Partial<IMailboxProperties>} = {}
   roleBoxList.forEach(item => {
     if (!item.props) { // try fix knownNameMailbox
       for (let box of noRoleBoxList) {
@@ -49,10 +55,11 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
           box.role = '' // set zero-length string from `null` as removed flag
 
           item.props = box
+          item.props.isSubscribed = true // always true
           item.id = box.id
           console.log('%s match name %s, try set SPECIAL-USE ATTR', box.id, item.name)
           $globalMailbox[box.id] = item.role
-          const patchObj: Partial<IMailboxProperties> = {role: item.role}
+          const patchObj: Partial<IMailboxProperties> = {role: item.role, isSubscribed: true}
           fixObj[box.id] = patchObj
           break
         }
