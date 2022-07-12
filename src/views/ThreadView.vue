@@ -133,7 +133,7 @@ function downloadAtt(attachment: JAttachment): void {
 
 onMounted(() => {
   if (route.query.id && route.query.accountId && route.query.total) {
-    console.log('dev-mode: render mailview.vue for %s', route.query.id)
+    console.log('dev-mode: render mailview.vue for %s or switch from other function-block', route.query.id)
     parseQuery(route.query)
     renderMailbox(mailboxInfo)
     totalThreads.value = mailboxInfo.total

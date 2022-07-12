@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, inject, Ref } from 'vue'
+import { onMounted, ref, watch, inject, Ref } from 'vue'
 import { store } from '@/utils/store'
 import type {contextMenuFunc} from '@/utils/store'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen'
@@ -43,6 +43,13 @@ watch(
     }
   }
 )
+
+onMounted(() => {
+  if (store.widthState == MINI_STATE) {
+    // if switchMbox from setting in MINI_STATE, show left in right
+    showLeftInRight.value = true
+  }
+})
 </script>
 
 <template>
