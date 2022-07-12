@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, provide, readonly } from 'vue'
+import { ref, reactive, onMounted, provide, readonly, computed } from 'vue'
 
 import { useRouter } from 'vue-router'
 
@@ -12,7 +12,7 @@ import { IMailboxSetArguments } from 'jmap-client-ts/lib/types'
 import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem, MailboxInfo } from '@/utils/global'
 import { Client } from 'jmap-client-ts'
 import { fillMboxList } from '@/utils/mailbox'
-import { store } from '@/utils/store'
+import { store, boxList, otherAccounts } from '@/utils/store'
 
 const router = useRouter()
 
@@ -120,14 +120,6 @@ function switchMailbox (arg: MailboxItem, accountId: string | null = $globalStat
   routerPushMail()
 }
 
-const boxList: Array<MailboxItem> = reactive([])
-
-interface otherMailbox {
-  accountId: string
-  boxList: Array<MailboxItem>
-}
-const otherAccounts: Array<otherMailbox> = reactive([])
-
 onMounted(() => {
   const h = getClientHeight()
   const w = getClientWidth()
@@ -194,19 +186,17 @@ onMounted(() => {
           accountId: accountId,
         }).then(result => {
           if (result.list.length > 0) {
-            const mb: otherMailbox = {
-              accountId: accountId,
-              boxList: []
-            }
             result.list.forEach(item => {
-              mb.boxList.push({
-                name: item.name,
-                id: item.id,
-                props: item,
-                role: ''
+              otherAccounts.push({
+                accountId: accountId,
+                box: {
+                  name: item.name,
+                  id: item.id,
+                  props: item,
+                  role: '',
+                },
               })
             })
-            otherAccounts.push(mb)
             console.log(otherAccounts)
           }
         }).catch(error => {
@@ -249,6 +239,13 @@ function clickManageFolders() {
     name: 'mailbox',
   })
 }
+
+const filterBoxlist = computed(() => {
+  return boxList.filter(item => item.props?.isSubscribed)
+})
+const filterOtherAccounts = computed(() => {
+  return otherAccounts.filter(item => item.box.props?.isSubscribed)
+})
 </script>
 
 <template>
@@ -272,7 +269,7 @@ function clickManageFolders() {
     <div class="main">
       <div :class="folderClass" class="folder">
         <ul class="function-block">
-          <li v-for="item in boxList" :key="item.id"
+          <li v-for="item in filterBoxlist" :key="item.id"
             class="list-item primary-item"
             :class="item.id === mailboxInfo.id ? 'focus-item':'normal-item'"
             @click.prevent="switchMailbox(item)"
@@ -289,16 +286,16 @@ function clickManageFolders() {
           <div class="secondary-block primary-item">
             Shared Accounts
           </div>
-          <ul v-for="account in otherAccounts" :key="account.accountId">
-            <li v-for="item in account.boxList" :key="item.id"
+          <ul>
+            <li v-for="item in filterOtherAccounts" :key="item.box.id"
               class="list-item"
-              :class="item.id === mailboxInfo.id ? 'focus-item':'normal-item'"
-              @click.prevent="switchMailbox(item, account.accountId)"
+              :class="item.box.id === mailboxInfo.id ? 'focus-item':'normal-item'"
+              @click.prevent="switchMailbox(item.box, item.accountId)"
             >
-              <span>{{ `${account.accountId}.${item.name}`}}</span>
-              <span v-if="item.props && item.props.unreadThreads > 0"
+              <span>{{ `${item.accountId}.${item.box.name}`}}</span>
+              <span v-if="item.box.props && item.box.props.unreadThreads > 0"
                 style="float: right;">
-                ({{item.props?.unreadThreads}})
+                ({{item.box.props?.unreadThreads}})
               </span>
             </li>
           </ul>

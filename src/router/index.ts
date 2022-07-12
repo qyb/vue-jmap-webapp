@@ -10,7 +10,7 @@ const appRoutes = [
   {
     path: '/app/mailbox',
     name: 'mailbox',
-    component: () => import('@/components/null.vue'),
+    component: () => import('@/views/MailboxView.vue'),
     meta: { title: 'Mailbox' },
   },
 ]

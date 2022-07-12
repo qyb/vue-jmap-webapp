@@ -11,7 +11,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
     "@fortawesome/free-solid-svg-icons": "^6.1.1",
     "@fortawesome/vue-fontawesome": "^3.0.0",
-    "jmap-client-ts": "https://bitbucket.org/qyb/jmap-client-ts#cec46fcd6fa6bfe94d43b140d8ab36202b6710bb",
+    "jmap-client-ts": "https://bitbucket.org/qyb/jmap-client-ts#a7c40da30e0759637891ee2d6dea8d6114b32fc0",
     "vue": "^3.2.25",
     "vue-router": "4"
   },
