@@ -252,9 +252,6 @@ const filterOtherAccounts = computed(() => {
   <div v-layout:[arg]="onResize" class="appcontainer">
     <div class="appbar">
       <font-awesome-icon icon="bars" class="left-drawer" @click="drawer"/>
-      <div style="flex: 1;">
-        https://github.com/qyb/vue-jmap-webapp
-      </div>
       <div class="right-edge profile" v-if="store.widthState==FULL_STATE || store.widthState==NORMAL_STATE">
         <font-awesome-icon icon="user"/>
         <div class="dropdown-profile">
@@ -366,12 +363,23 @@ const filterOtherAccounts = computed(() => {
   color: #232F34;
   align-items: center;
 }
+.toolbar-icon {
+  width: 48px;
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.toolbar-icon .title {
+  font-size: xx-small;
+  text-align: center;
+}
 .appbar .left-drawer {
   margin-left: 4px;
   margin-top: 4px;
   margin-bottom: 4px;
   width: 28px;
   height: 24px;
+  z-index: 1; /* avoid column-toolbar override */
 }
 .appbar .right-edge {
   margin-right: 4px;
@@ -379,6 +387,7 @@ const filterOtherAccounts = computed(() => {
   margin-bottom: 4px;
   width: 28px;
   height: 24px;
+  z-index: 1; /* avoid column-toolbar override */
 }
 .profile {
   display: block;

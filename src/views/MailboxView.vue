@@ -53,6 +53,12 @@ function toggle(item: MailboxItem, accountId: string | null) {
     <template v-slot:right><div style="overflow-y: auto; height: 100%;">
       bar
     </div></template>
+    <template v-slot:left-toolbar>
+      <span class="toolbar-icon">
+        <font-awesome-icon icon="folder-plus" />
+        <i class="title">Create</i>
+      </span>
+    </template>
   </ResponsiveColumn>
 </template>
 

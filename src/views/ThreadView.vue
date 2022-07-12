@@ -231,6 +231,20 @@ watch(
         </div>
       </div>
     </div></template>
+    <template v-slot:left-toolbar>
+      <span class="toolbar-icon">
+        <font-awesome-icon icon="arrow-pointer" />
+        <i class="title">Select</i>
+      </span>
+      <span class="toolbar-icon">
+        <font-awesome-icon icon="trash-can" />
+        <i class="title">Trash</i>
+      </span>
+      <span class="toolbar-icon">
+        <font-awesome-icon icon="folder-open" />
+        <i class="title">Move</i>
+      </span>
+    </template>
   </ResponsiveColumn>
 </template>
 

@@ -7,6 +7,10 @@ import {
   faArrowTurnUp,
   faTriangleExclamation,
   faEnvelopeOpenText,
+  faArrowPointer,
+  faTrashCan,
+  faFolderOpen,
+  faFolderPlus,
 } from "@fortawesome/free-solid-svg-icons"
 
 library.add(
@@ -16,6 +20,10 @@ library.add(
   faArrowTurnUp,
   faTriangleExclamation,
   faEnvelopeOpenText,
+  faArrowPointer,
+  faTrashCan,
+  faFolderOpen,
+  faFolderPlus,
 )
 
 export default FontAwesomeIcon
