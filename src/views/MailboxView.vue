@@ -33,8 +33,8 @@ function toggle(item: MailboxItem, accountId: string | null) {
 const createPanel = ref(false)
 const detailPanel = ref(false)
 const newMailboxName = ref('')
+const specialUse = ref(true)
 
-const specialUse = ref(false)
 const unreadEmails = ref(0)
 const totalEmails = ref(0)
 
@@ -61,7 +61,7 @@ function showMailbox(mailbox: MailboxItem, accountId: string | null) {
     resetState()
     detailPanel.value = true
     newMailboxName.value = props.name
-    specialUse.value = (props.role !== undefined && props.role != null) || accountId != null
+    specialUse.value = (props.role !== undefined && props.role != null) || accountId != null // true if otherAccount
     unreadEmails.value = props.unreadEmails
     totalEmails.value = props.totalEmails
     currentAccountId = accountId
@@ -78,6 +78,7 @@ function resetState() {
   createPanel.value = false
   detailPanel.value = false
   newMailboxName.value = ''
+  specialUse.value = true
 }
 function clearForms() {
   resetState()
@@ -149,6 +150,38 @@ function renameMailbox() {
           otherAccounts.forEach(item => {
             if (item.box.id == id) {
               item.box.name = newMailboxName.value
+            }
+          })
+        }
+
+        clearForms()
+      }
+    })
+  }
+}
+function deleteMailbox() {
+  if (!specialUse.value && currentMailbox && totalEmails.value == 0) {
+    $globalState.jclient?.client.mailbox_set({
+      accountId: currentAccountId,
+      ifInState: currentServerState,
+      destroy: [currentMailbox.id],
+      // todo: onDestroyRemoveEmails
+    }).then(result => {
+      currentServerState = result.newState
+      if (result.destroyed && currentMailbox && result.destroyed[0] == currentMailbox.id) {
+        const id = currentMailbox.id
+        if (currentAccountId == null) {
+          boxList.forEach((item, index, array) => {
+            if (id == item.id) {
+              array.splice(index, 1)
+              return
+            }
+          })
+        } else {
+            otherAccounts.forEach((item, index, array) => {
+            if (item.box.id == id) {
+              array.splice(index, 1)
+              return
             }
           })
         }
@@ -239,6 +272,12 @@ watch(
         <i class="title">Create</i>
       </span>
     </template>
+    <template v-slot:right-toolbar>
+      <span v-if="!specialUse && totalEmails == 0" class="toolbar-icon" @click="deleteMailbox()">
+        <font-awesome-icon icon="trash-can"/>
+        <i class="title">Delete</i>
+      </span>
+    </template>
   </ResponsiveColumn>
 </template>
 
@@ -251,6 +290,7 @@ watch(
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow-y: scroll;
   padding-left: 8px;
   padding-right: 8px;
 }
