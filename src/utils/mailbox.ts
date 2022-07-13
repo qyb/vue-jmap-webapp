@@ -1,7 +1,7 @@
-import { IMailboxProperties } from 'jmap-client-ts/lib/types'
+import { IMailboxProperties, IMailboxSetArguments } from 'jmap-client-ts/lib/types'
 import { $globalMailbox, MailboxItem } from './global'
 
-export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxItem>): {[id: string]: Partial<IMailboxProperties>} {
+export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxItem>): IMailboxSetArguments {
   //https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml
   const roleBoxList: Array<MailboxItem> = [
     {name: 'Inbox', id: '', role: 'inbox', isSubscribed: true},
@@ -12,6 +12,7 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
   ]
 
   const fixObj: {[id: string]: Partial<IMailboxProperties>} = {}
+  const newObj: {[id: string]: Partial<IMailboxProperties>} = {}
 
   let noRoleBoxList: Array<IMailboxProperties> = []
   for (let box of list) {
@@ -51,6 +52,7 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
 
   roleBoxList.forEach(item => {
     if (!item.props) { // try fix knownNameMailbox
+      let matched = false
       for (let box of noRoleBoxList) {
         if (box.name == item.name) {
           box.role = '' // set zero-length string from `null` as removed flag
@@ -62,13 +64,17 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
           $globalMailbox[box.id] = item.role
           const patchObj: Partial<IMailboxProperties> = {role: item.role, isSubscribed: true}
           fixObj[box.id] = patchObj
+          matched = true
           break
         }
       }
+      if (!matched) {
+        console.log('%s notfound, try auto provisioning mailbox', item.name)
+        newObj[item.name] = {name: item.name, role: item.role, isSubscribed: true}
+      }
     }
-    if (item.id) { // corrupt cyrus mailboxes.db may return ''
-      boxList.push(item)
-    }
+
+    boxList.push(item)
   })
 
   for (let box of noRoleBoxList) {
@@ -91,5 +97,14 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
   }
 
   console.log($globalMailbox)
-  return fixObj
+  const fixSpecialUSE:IMailboxSetArguments = {
+    accountId: null,
+  }
+  if (Object.keys(fixObj).length > 0) {
+    fixSpecialUSE.update = fixObj
+  }
+  if (Object.keys(newObj).length > 0) {
+    fixSpecialUSE.create = newObj
+  }
+  return fixSpecialUSE
 }

@@ -8,8 +8,7 @@ import {
   MINI_STATE, COMPACT_STATE, NORMAL_STATE, FULL_STATE,
   MIN_FULL, MIN_NORMAL, MIN_COMPACT,
  } from '@/utils/screen';
-import { IMailboxSetArguments } from 'jmap-client-ts/lib/types'
-import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem, MailboxInfo } from '@/utils/global'
+import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem, MailboxInfo, $globalMailbox } from '@/utils/global'
 import { Client } from 'jmap-client-ts'
 import { fillMboxList } from '@/utils/mailbox'
 import { store, boxList, otherAccounts } from '@/utils/store'
@@ -146,19 +145,29 @@ onMounted(() => {
       accountId: $globalState.accountId,
     }).then(result => {
       console.log(result)
-      const fixSpecialUSE:IMailboxSetArguments = {
-        accountId: $globalState.accountId,
-        ifInState: result.state,
-      }
 
-      const fixObj = fillMboxList(result.list, boxList)
+      const fixSpecialUSE = fillMboxList(result.list, boxList)
 
-      if (Object.keys(fixObj).length > 0) {
-        fixSpecialUSE.update = fixObj
+      if (fixSpecialUSE.update || fixSpecialUSE.create) {
+        fixSpecialUSE.ifInState = result.state
         client.mailbox_set(fixSpecialUSE).then(response => {
           if (response.updated) {
             for (const [key, value] of Object.entries(response.updated)) {
-              console.log(`Mailbox/set: ${key} success`);
+              console.log(`mailbox_set/update: ${key} success`)
+            }
+          }
+          if (response.created) {
+            for (const [key, value] of Object.entries(response.created)) {
+              console.log(`mailbox_set/create: ${key} success`)
+              boxList.forEach(item => {
+                if (item.name == key) {
+                  item.id = value.id
+                  item.props = value
+                  console.log(`update $globalMailbox: ${item.id} ${item.role}`)
+                  $globalMailbox[item.id] = item.role
+                  return
+                }
+              })
             }
           }
         }).catch(error => {
@@ -242,10 +251,10 @@ function clickManageFolders() {
 }
 
 const filterBoxlist = computed(() => {
-  return boxList.filter(item => item.props?.isSubscribed)
+  return boxList.filter(item => item.isSubscribed)
 })
 const filterOtherAccounts = computed(() => {
-  return otherAccounts.filter(item => item.box.props?.isSubscribed)
+  return otherAccounts.filter(item => item.box.isSubscribed)
 })
 </script>
 
