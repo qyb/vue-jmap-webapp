@@ -170,6 +170,11 @@
   resolved "https://registry.npmmirror.com/@vue/shared/-/shared-3.2.37.tgz#8e6adc3f2759af52f0e85863dfb0b711ecc5c702"
   integrity sha512-4rSJemR2NQIo9Klm1vabqWjD8rs/ZaJSzMxkMNeJS6lHiUjjUeYFbooN19NgFjztubEKh3WlZUeOLVdbbUWHsw==
 
+"@vueform/toggle@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.npmmirror.com/@vueform/toggle/-/toggle-2.1.1.tgz#44dab4aa09c778224d427af50a11d7371bcfd003"
+  integrity sha512-5o//0DkYMFSICD1ShT0CZN9RywtwX79FkeYfl0N6Xe/rpTLsqZ6g2b/jRFimU+0CUOiGCcA27hTrzSUx9p3Iiw==
+
 csstype@^2.6.8:
   version "2.6.20"
   resolved "https://registry.npmmirror.com/csstype/-/csstype-2.6.20.tgz#9229c65ea0b260cf4d3d997cb06288e36a8d6dda"

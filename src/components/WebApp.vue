@@ -194,6 +194,7 @@ onMounted(() => {
                   id: item.id,
                   props: item,
                   role: '',
+                  isSubscribed: item.isSubscribed,
                 },
               })
             })

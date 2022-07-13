@@ -4,11 +4,11 @@ import { $globalMailbox, MailboxItem } from './global'
 export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxItem>): {[id: string]: Partial<IMailboxProperties>} {
   //https://www.iana.org/assignments/imap-mailbox-name-attributes/imap-mailbox-name-attributes.xhtml
   const roleBoxList: Array<MailboxItem> = [
-    {name: 'Inbox', id: '', role: 'inbox'},
-    {name: 'Drafts', id: '', role: 'drafts'},
-    {name: 'Sent', id: '', role: 'sent'},
-    {name: 'Trash', id: '', role: 'trash'},
-    {name: 'Junk', id: '', role: 'junk'},
+    {name: 'Inbox', id: '', role: 'inbox', isSubscribed: true},
+    {name: 'Drafts', id: '', role: 'drafts', isSubscribed: true},
+    {name: 'Sent', id: '', role: 'sent', isSubscribed: true},
+    {name: 'Trash', id: '', role: 'trash', isSubscribed: true},
+    {name: 'Junk', id: '', role: 'junk', isSubscribed: true},
   ]
 
   const fixObj: {[id: string]: Partial<IMailboxProperties>} = {}
@@ -38,7 +38,8 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
           name: box.name,
           id: box.id,
           props: box,
-          role: box.role
+          role: box.role,
+          isSubscribed: box.isSubscribed,
         })
       }
 
@@ -77,6 +78,7 @@ export function fillMboxList(list: IMailboxProperties[], boxList: Array<MailboxI
         id: box.id,
         props: box,
         role: '',
+        isSubscribed: box.isSubscribed,
       })
       if (box.name == 'Sent Items') { //fix outlook client, it will not affect backend
         $globalMailbox[box.id] = 'sent'

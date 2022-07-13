@@ -80,6 +80,7 @@ export declare type MailboxItem = {
   name: string
   id: string
   role: string
+  isSubscribed: boolean
   displayName?: string // i18n
   props?: IMailboxProperties
 }
