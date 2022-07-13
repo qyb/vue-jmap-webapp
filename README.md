@@ -21,7 +21,8 @@ Now it's at an early stage with a few functions: login(auth), list mailboxes, li
     * ~~list shared mailbox from other account~~ **Done.**
 
 2. Message Operation (2022 Jun)
-    * create mailbox
+    * ~~create mailbox~~ **Done.**
+    * ~~subscribe mailbox~~ **Done.**
     * move/delete mail
     * addressbook
 
