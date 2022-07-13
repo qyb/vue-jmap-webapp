@@ -20,22 +20,22 @@ Now it's at an early stage with a few functions: login(auth), list mailboxes, li
     * ~~[patch 1](https://github.com/linagora/jmap-client-ts/pull/63), [patch 2](https://github.com/linagora/jmap-client-ts/pull/65)~~ try put my patch into https://github.com/linagora/jmap-client-ts
     * ~~list shared mailbox from other account~~ **Done.**
 
-2. Message Operation (2022 Jun)
-    * ~~create mailbox~~ **Done.**
-    * ~~subscribe mailbox~~ **Done.**
+2. Message Operation (2022 Jul)
+    * ~~subscribe mailbox~~ **Done.** 2022.07.12
+    * ~~create mailbox~~ **Done.** 2022.07.13
     * move/delete mail
     * addressbook
 
-3. Send Message (2022 Jul)
+3. Send Message (2022 Aug)
     * compose UI
     * reply/forward
     * connect submission service
 
-4. Search & Tag (2022 Aug)
+4. Search & Tag (2022 Sep)
     * search UI
     * server-side sieve
 
-5. Web Push & WebApp state (2022 Aug)
+5. Web Push & WebApp state (2022 Sep)
 
 6. More..
 
