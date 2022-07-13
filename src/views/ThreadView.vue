@@ -13,7 +13,7 @@ import { JAttachment } from '@/utils/jclient'
 import { fuzzyDatetime, downloadFName } from '@/utils/common'
 import ResponsiveColumn from '@/components/ResponsiveColumn.vue'
 import { useRoute } from 'vue-router'
-import { store } from '@/utils/store'
+import { boxList, store } from '@/utils/store'
 import type {contextMenuFunc} from '@/utils/store'
 import { IEmailProperties } from 'jmap-client-ts/lib/types'
 const contextMenu = inject('contextMenu') as contextMenuFunc
@@ -95,6 +95,16 @@ function readThread (id: string, subject: string) {
         update: setSeenObj,
       }).then(result => {
         console.log('Seen:', result.updated)
+        if (currentAccountId == $globalState.accountId) {
+          boxList.forEach(item => {
+            if (item.id == mailboxInfo.id && item.props) {
+              if (item.props.unreadThreads > 0) {
+                item.props.unreadThreads --
+              }
+              return
+            }
+          })
+        }
       })
     }
 
