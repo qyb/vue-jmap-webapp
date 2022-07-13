@@ -15,6 +15,7 @@ import ResponsiveColumn from '@/components/ResponsiveColumn.vue'
 import { useRoute } from 'vue-router'
 import { store } from '@/utils/store'
 import type {contextMenuFunc} from '@/utils/store'
+import { IEmailProperties } from 'jmap-client-ts/lib/types'
 const contextMenu = inject('contextMenu') as contextMenuFunc
 const route = useRoute()
 
@@ -74,9 +75,27 @@ function readThread (id: string, subject: string) {
 
   $globalState.jclient?.thread_get(currentAccountId, id).then(list => {
     store.focusRightColumn = true
-    threadSubject.value = subject ? subject:NULL_SUBJECT
     if (store.widthState == MINI_STATE) {
       contextMenu(true)
+    }
+
+    threadSubject.value = subject ? subject:NULL_SUBJECT
+
+    const setSeenObj: {[id: string]: Partial<IEmailProperties>} = {}
+    list.forEach(item => {
+      if (!item.keywords.$seen) {
+        setSeenObj[item.id] = {
+          keywords: {$seen: true},
+        }
+      }
+    })
+    if (Object.keys(setSeenObj).length > 0) {
+      $globalState.jclient?.client.email_set({
+        accountId: currentAccountId,
+        update: setSeenObj,
+      }).then(result => {
+        console.log('Seen:', result.updated)
+      })
     }
 
     if (fillThreadContents(list, msgContents, inlineBlobList)) {
