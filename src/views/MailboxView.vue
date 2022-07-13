@@ -136,6 +136,7 @@ function renameMailbox() {
         }
       }
     }).then(result => {
+      currentServerState = result.newState
       if (result.updated && currentMailbox && result.updated[currentMailbox.id] !== undefined) {
         const id = currentMailbox.id
         if (currentAccountId == null) {
@@ -183,10 +184,10 @@ watch(
           <span>isSubscribed</span>
         </div>
         <ul style="margin-top: 0px; margin-bottom: 0px;">
-          <li v-for="item in boxList" :key="item.id" class="mfolder-list-item mfolder-list-itemlayout"
-            @click="showMailbox(item, null)"
+          <li v-for="item in boxList" :key="item.id"
+            class="mfolder-list-item mfolder-list-itemlayout"
           >
-            <span>{{ item.name }}</span>
+            <span style="flex:1; cursor: pointer;" @click="showMailbox(item, null)">{{ item.name }}</span>
             <span>
               <Toggle v-model="item.isSubscribed" :id="item.id" :disabled="item.role!=''" @change="toggle(item, null)" onLabel="on" offLabel="off"/>
             </span>
@@ -197,10 +198,10 @@ watch(
             Users
           </div>
           <ul style="margin-top: 0px; margin-bottom: 0px;">
-            <li v-for="item in otherAccounts" :key="item.box.id" style="padding-left: 8px; " class="mfolder-list-item mfolder-list-itemlayout"
-              @click="showMailbox(item.box, item.accountId)"
+            <li v-for="item in otherAccounts" :key="item.box.id"
+              style="padding-left: 8px; " class="mfolder-list-item mfolder-list-itemlayout"
             >
-              <span>{{ `${item.accountId}.${item.box.name}`}}</span>
+              <span style="flex:1; cursor: pointer;" @click="showMailbox(item.box, item.accountId)">{{ `${item.accountId}.${item.box.name}`}}</span>
               <span>
                 <Toggle v-model="item.box.isSubscribed" :id="item.box.id"  @change="toggle(item.box, item.accountId)" onLabel="on" offLabel="off"/></span>
             </li>
