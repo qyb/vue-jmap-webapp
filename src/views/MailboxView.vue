@@ -31,17 +31,56 @@ function toggle(item: MailboxItem, accountId: string | null) {
 }
 
 const createPanel = ref(false)
+const detailPanel = ref(false)
 const newMailboxName = ref('')
+
+const specialUse = ref(false)
+const unreadEmails = ref(0)
+const totalEmails = ref(0)
+
 function showCreateForm() {
+  resetState()
   createPanel.value = true
   store.focusRightColumn = true
   if (store.widthState == MINI_STATE) {
     contextMenu(true)
   }
 }
-function clearForms() {
+
+let currentAccountId: string | null = null
+let currentMailbox: MailboxItem | null = null
+let currentServerState: string = ''
+function showMailbox(mailbox: MailboxItem, accountId: string | null) {
+  $globalState.jclient?.client.mailbox_get({
+    accountId: accountId,
+    ids: [mailbox.id],
+  }).then(result => {
+    currentServerState = result.state
+    const props = result.list[0]
+    console.log(props)
+    resetState()
+    detailPanel.value = true
+    newMailboxName.value = props.name
+    specialUse.value = (props.role !== undefined && props.role != null) || accountId != null
+    unreadEmails.value = props.unreadEmails
+    totalEmails.value = props.totalEmails
+    currentAccountId = accountId
+    currentMailbox = mailbox
+
+    store.focusRightColumn = true
+    if (store.widthState == MINI_STATE) {
+      contextMenu(true)
+    }
+  })
+}
+
+function resetState() {
   createPanel.value = false
+  detailPanel.value = false
   newMailboxName.value = ''
+}
+function clearForms() {
+  resetState()
   store.focusRightColumn = false
   if (store.widthState == MINI_STATE) {
     contextMenu(false)
@@ -86,6 +125,38 @@ function newMailbox() {
     })
   }
 }
+function renameMailbox() {
+  if (!specialUse.value && currentMailbox && currentMailbox.name != newMailboxName.value) {
+    $globalState.jclient?.client.mailbox_set({
+      accountId: currentAccountId,
+      ifInState: currentServerState,
+      update: {
+        [currentMailbox.id]: {
+          name: newMailboxName.value,
+        }
+      }
+    }).then(result => {
+      if (result.updated && currentMailbox && result.updated[currentMailbox.id] !== undefined) {
+        const id = currentMailbox.id
+        if (currentAccountId == null) {
+          boxList.forEach(item => {
+            if (item.id == id) {
+              item.name = newMailboxName.value
+            }
+          })
+        } else {
+          otherAccounts.forEach(item => {
+            if (item.box.id == id) {
+              item.box.name = newMailboxName.value
+            }
+          })
+        }
+
+        clearForms()
+      }
+    })
+  }
+}
 
 onMounted(() => {
   store.focusRightColumn = false
@@ -112,7 +183,9 @@ watch(
           <span>isSubscribed</span>
         </div>
         <ul style="margin-top: 0px; margin-bottom: 0px;">
-          <li v-for="item in boxList" :key="item.id" class="mfolder-list-item mfolder-list-itemlayout">
+          <li v-for="item in boxList" :key="item.id" class="mfolder-list-item mfolder-list-itemlayout"
+            @click="showMailbox(item, null)"
+          >
             <span>{{ item.name }}</span>
             <span>
               <Toggle v-model="item.isSubscribed" :id="item.id" :disabled="item.role!=''" @change="toggle(item, null)" onLabel="on" offLabel="off"/>
@@ -124,7 +197,9 @@ watch(
             Users
           </div>
           <ul style="margin-top: 0px; margin-bottom: 0px;">
-            <li v-for="item in otherAccounts" :key="item.box.id" style="padding-left: 8px; " class="mfolder-list-item mfolder-list-itemlayout">
+            <li v-for="item in otherAccounts" :key="item.box.id" style="padding-left: 8px; " class="mfolder-list-item mfolder-list-itemlayout"
+              @click="showMailbox(item.box, item.accountId)"
+            >
               <span>{{ `${item.accountId}.${item.box.name}`}}</span>
               <span>
                 <Toggle v-model="item.box.isSubscribed" :id="item.box.id"  @change="toggle(item.box, item.accountId)" onLabel="on" offLabel="off"/></span>
@@ -139,6 +214,20 @@ watch(
           <input v-model="newMailboxName" />
           <div style="display: flex; justify-content: space-around; margin-top: 12px;">
             <button @click="newMailbox()">submit</button><button @click="clearForms()">cancel</button>
+          </div>
+        </div>
+      </div>
+      <div v-if="detailPanel" style="display: flex; justify-content: space-around;">
+        <div style="width: 400px; display: flex; flex-direction: column; margin-top: 30px;">
+          <input v-model="newMailboxName" :disabled="specialUse" />
+          <div>
+            unreadEmails: {{unreadEmails}}
+          </div>
+          <div>
+            totalEmails: {{totalEmails}}
+          </div>
+          <div style="display: flex; justify-content: space-around; margin-top: 12px;">
+            <button @click="renameMailbox()" :disabled="specialUse">rename</button><button @click="clearForms()">cancel</button>
           </div>
         </div>
       </div>
