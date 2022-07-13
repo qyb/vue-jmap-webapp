@@ -31,7 +31,6 @@ function initMediaUI() {
 }
 
 const threadSubject = ref('') // current Thread
-store.focusRightColumn = false
 
 // next three variables pass to MsgList component
 const totalThreads = ref(0)
@@ -132,6 +131,7 @@ function downloadAtt(attachment: JAttachment): void {
 }
 
 onMounted(() => {
+  store.focusRightColumn = false
   if (route.query.id && route.query.accountId && route.query.total) {
     console.log('dev-mode: render mailview.vue for %s or switch from other function-block', route.query.id)
     parseQuery(route.query)

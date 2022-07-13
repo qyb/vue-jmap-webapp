@@ -4,6 +4,12 @@ import Toggle from '@vueform/toggle'
 import { $globalState, MailboxItem } from '@/utils/global'
 import { boxList, otherAccounts } from '@/utils/store'
 import { IMailboxProperties, IMailboxSetArguments } from 'jmap-client-ts/lib/types'
+import { inject, onMounted, ref, Ref, watch } from 'vue'
+import { MINI_STATE } from '@/utils/screen'
+import { store } from '@/utils/store'
+import type {contextMenuFunc} from '@/utils/store'
+const leftInMiniUI = inject('leftInMiniUI') as Ref<boolean>
+const contextMenu = inject('contextMenu') as contextMenuFunc
 
 /**
  * primaryAccountId pass `null`
@@ -23,6 +29,78 @@ function toggle(item: MailboxItem, accountId: string | null) {
     })
   }
 }
+
+const createPanel = ref(false)
+const newMailboxName = ref('')
+function showCreateForm() {
+  createPanel.value = true
+  store.focusRightColumn = true
+  if (store.widthState == MINI_STATE) {
+    contextMenu(true)
+  }
+}
+function clearForms() {
+  createPanel.value = false
+  newMailboxName.value = ''
+  store.focusRightColumn = false
+  if (store.widthState == MINI_STATE) {
+    contextMenu(false)
+  }
+}
+function newMailbox() {
+  let matched = false
+  boxList.forEach(item => {
+    if (item.name == newMailboxName.value) {
+      matched = true
+      return
+    }
+  })
+  const id = 'temporaryId'
+  if (!matched) {
+    $globalState.jclient?.client.mailbox_set({
+      accountId: null,
+      create: {
+        [id]: {
+          name: newMailboxName.value,
+        }
+      }
+    }).then(result => {
+      if (result.created && result.created[id]) {
+        /**
+         * TODO: cyrus only return part of IMailboxProperties
+         *  id: "foobar"
+         *  isSeenShared: false
+         *  isSubscribed: false
+         *  showAsLabel: true
+         *  sortOrder: 10
+         */
+        boxList.push({
+          name: newMailboxName.value,
+          id: result.created[id].id,
+          role: '',
+          props: result.created[id],
+          isSubscribed: result.created[id].isSubscribed,
+        })
+        clearForms()
+      }
+    })
+  }
+}
+
+onMounted(() => {
+  store.focusRightColumn = false
+})
+
+watch(
+  () => leftInMiniUI.value,
+  (newArg, oldArg) => {
+    if (newArg) {
+      // click back2Left menuIcon
+      clearForms()
+    }
+  }
+)
+
 </script>
 
 <template>
@@ -37,7 +115,7 @@ function toggle(item: MailboxItem, accountId: string | null) {
           <li v-for="item in boxList" :key="item.id" class="mfolder-list-item mfolder-list-itemlayout">
             <span>{{ item.name }}</span>
             <span>
-              <Toggle v-model="item.isSubscribed" :id="item.id" :disabled="item.role!=null&&item.role!=''" @change="toggle(item, null)" />
+              <Toggle v-model="item.isSubscribed" :id="item.id" :disabled="item.role!=''" @change="toggle(item, null)" onLabel="on" offLabel="off"/>
             </span>
           </li>
         </ul>
@@ -49,17 +127,24 @@ function toggle(item: MailboxItem, accountId: string | null) {
             <li v-for="item in otherAccounts" :key="item.box.id" style="padding-left: 8px; " class="mfolder-list-item mfolder-list-itemlayout">
               <span>{{ `${item.accountId}.${item.box.name}`}}</span>
               <span>
-                <Toggle v-model="item.box.isSubscribed" :id="item.box.id"  @change="toggle(item.box, item.accountId)"/></span>
+                <Toggle v-model="item.box.isSubscribed" :id="item.box.id"  @change="toggle(item.box, item.accountId)" onLabel="on" offLabel="off"/></span>
             </li>
           </ul>
         </div>
       </div>
     </template>
     <template v-slot:right><div style="overflow-y: auto; height: 100%;">
-      bar
+      <div v-if="createPanel" style="display: flex; justify-content: space-around;">
+        <div style="width: 400px; display: flex; flex-direction: column; margin-top: 30px;">
+          <input v-model="newMailboxName" />
+          <div style="display: flex; justify-content: space-around; margin-top: 12px;">
+            <button @click="newMailbox()">submit</button><button @click="clearForms()">cancel</button>
+          </div>
+        </div>
+      </div>
     </div></template>
     <template v-slot:left-toolbar>
-      <span class="toolbar-icon">
+      <span class="toolbar-icon" @click="showCreateForm()">
         <font-awesome-icon icon="folder-plus" />
         <i class="title">Create</i>
       </span>
