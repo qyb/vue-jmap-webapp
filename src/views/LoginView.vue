@@ -85,8 +85,8 @@ onMounted(() => {
     fetchSession(authorizationHeader, false)
   }
   if (import.meta.env.MODE == 'demo') {
-    tips.info = 'Demo Account: inbox@rubyfish.app, Password: inbox'
-    login.value = 'inbox@rubyfish.app'
+    tips.info = 'Demo Account: demo@rubyfish.app, Password: demo'
+    login.value = 'demo@rubyfish.app'
 
     const t1 = import.meta.env.VITE_APP_TITLE.split('(')
     if (t1.length == 2) {
