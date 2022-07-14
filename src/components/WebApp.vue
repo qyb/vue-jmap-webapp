@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, provide, readonly, computed } from 'vue'
+import { ref, onMounted, provide, readonly, computed } from 'vue'
 
 import { useRouter } from 'vue-router'
 
@@ -8,7 +8,7 @@ import {
   MINI_STATE, COMPACT_STATE, NORMAL_STATE, FULL_STATE,
   MIN_FULL, MIN_NORMAL, MIN_COMPACT,
  } from '@/utils/screen';
-import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem, MailboxInfo, $globalMailbox } from '@/utils/global'
+import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem, $globalMailbox } from '@/utils/global'
 import { Client } from 'jmap-client-ts'
 import { fillMboxList } from '@/utils/mailbox'
 import { store, boxList, otherAccounts } from '@/utils/store'
@@ -16,8 +16,7 @@ import { store, boxList, otherAccounts } from '@/utils/store'
 const router = useRouter()
 
 const username = ref('')
-// TODO: 看起来 mailboxInfo 除了 id 还需要在模板里面做比较之外，其它的值都没啥用了...
-const mailboxInfo: MailboxInfo = reactive({id: PLACEHOLDER_MAILBOXID, total: 0, accountId: null})
+const currentMailboxId = ref(PLACEHOLDER_MAILBOXID)
 
 // default define as normalview
 const folderClass = ref('folder-normal')
@@ -95,28 +94,27 @@ function drawer () {
   }
 }
 
-function routerPushMail() {
+function routerPushMail(mailboxId: string, total: number, accountId: string) {
+  currentMailboxId.value = mailboxId
+
   router.push({
     name: 'mail',
     query: {
-      id: mailboxInfo.id,
-      total: mailboxInfo.total,
-      accountId: mailboxInfo.accountId,
+      id: mailboxId,
+      total: total,
+      accountId: accountId,
     },
   })
 }
 
 function switchMailbox (arg: MailboxItem, accountId: string | null = $globalState.accountId): void {
   clearFocus()
-  mailboxInfo.id = arg.id
-  mailboxInfo.accountId = accountId
-  mailboxInfo.total = arg.props?.totalThreads as number
 
   if (store.widthState == MINI_STATE) {
     leftInMiniUI.value = true // remove back2Left icon
   }
 
-  routerPushMail()
+  routerPushMail(arg.id, arg.props?.totalThreads as number, accountId as string)
 }
 
 onMounted(() => {
@@ -178,11 +176,7 @@ onMounted(() => {
       }
 
       if (boxList.length > 0) {
-        mailboxInfo.id = boxList[0].id
-        mailboxInfo.total = boxList[0].props?.totalThreads as number
-        mailboxInfo.accountId = $globalState.accountId
-
-        routerPushMail()
+        routerPushMail(boxList[0].id, boxList[0].props?.totalThreads as number, $globalState.accountId as string)
       } else {
         console.error('no available mailbox')
       }
@@ -243,7 +237,7 @@ defineProps<{
 const focusManageFolders = ref(false)
 function clearFocus() {
   focusManageFolders.value = false
-  mailboxInfo.id = PLACEHOLDER_MAILBOXID
+  currentMailboxId.value = PLACEHOLDER_MAILBOXID
 }
 
 function clickManageFolders() {
@@ -282,7 +276,7 @@ const filterOtherAccounts = computed(() => {
         <ul class="function-block">
           <li v-for="item in filterBoxlist" :key="item.id"
             class="list-item primary-item"
-            :class="item.id === mailboxInfo.id ? 'focus-item':'normal-item'"
+            :class="item.id === currentMailboxId ? 'focus-item':'normal-item'"
             @click.prevent="switchMailbox(item)"
           >
             <span>{{item.name}}</span>
@@ -300,7 +294,7 @@ const filterOtherAccounts = computed(() => {
           <ul>
             <li v-for="item in filterOtherAccounts" :key="item.box.id"
               class="list-item"
-              :class="item.box.id === mailboxInfo.id ? 'focus-item':'normal-item'"
+              :class="item.box.id === currentMailboxId ? 'focus-item':'normal-item'"
               @click.prevent="switchMailbox(item.box, item.accountId)"
             >
               <span>{{ `${item.accountId}.${item.box.name}`}}</span>
