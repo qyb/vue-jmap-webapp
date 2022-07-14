@@ -38,6 +38,14 @@ export const PLACEHOLDER_MAILBOXID = 'foo-bar'
 export const NULL_SUBJECT = '(null subject)'
 
 export const $globalMailbox: { [mailboxId:string]: string|null} = {} // id: role
+export function getTrashMbox(): string | null {
+  for (const [key, value] of Object.entries($globalMailbox)) {
+    if (value == 'trash') {
+      return key
+    }
+  }
+  return null
+}
 
 export declare type MessageLIST = Array<{
   threadId: string

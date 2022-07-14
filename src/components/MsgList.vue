@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { $globalState, PLACEHOLDER_MAILBOXID } from '@/utils/global'
-import { store } from '@/utils/store'
+import { PLACEHOLDER_MAILBOXID } from '@/utils/global'
+import { renderMailbox, store, msglist_id } from '@/utils/store'
 import { watch, onMounted } from 'vue'
-import { fillMsgList } from '@/utils/listmail'
 
 const emit = defineEmits<{
   (e: 'read', id: string, subject: string): void
@@ -21,12 +20,6 @@ watch(
     }
   }
 )
-function renderMailbox (pos: number = 0): void {
-  $globalState.jclient?.msglist_get(store.currentMbox.accountId, store.currentMbox.id, pos)
-  .then(list=>{
-    fillMsgList(list, store.currentMbox, pos)
-  })
-}
 
 function switchPos (pos: number) {
   if (pos >= 0) {
@@ -40,6 +33,9 @@ function readThread (threadId: string, index: number, subject: string) {
 }
 
 function cancelSelect () {
+  store.msgList.forEach(item => {
+    item.checked = false
+  })
   emit('cancelSelect')
 }
 
@@ -56,16 +52,16 @@ onMounted(() => {
   <div class="msglist">
     <div class="minibar">
       <div v-if="selectMode" style="display: flex; justify-content: space-around;width: 100%;">
-        <button>current page</button>
-        <button>all threads</button>
-        <button>reverse</button>
+        <button @click="store.msgList.forEach(item=>{item.checked=true})">current page</button>
+        <button @click="store.msgList.forEach(item=>{if(!item.seen)item.checked=true})">unread</button>
+        <button @click="store.msgList.forEach(item=>{item.checked=!item.checked})">reverse</button>
         <button @click="cancelSelect()">cancel</button>
       </div>
       <div v-else>
         <input value="search..." /> <button disabled>PLACEHOLDER search</button>
       </div>
     </div>
-    <ul>
+    <ul :id="msglist_id">
       <li v-for="(item, index) in store.msgList" :key="item.threadId" style="margin-top: 10px; display: flex; align-items: center;">
         <div v-if="selectMode">
           <input type="checkbox" v-model="item.checked" />

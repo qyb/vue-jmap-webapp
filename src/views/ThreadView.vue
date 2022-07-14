@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { onMounted, watch, reactive, ref, nextTick, inject } from 'vue'
 import { MINI_STATE } from '@/utils/screen'
-import { NULL_SUBJECT, ThreadContents, $globalState } from '@/utils/global'
+import { NULL_SUBJECT, ThreadContents, $globalState, getTrashMbox } from '@/utils/global'
 import MsglistView from '@/components/MsgList.vue'
 import { fillThreadContents, replaceCID } from '@/utils/readmail'
 import { JAttachment } from '@/utils/jclient'
 import { fuzzyDatetime, downloadFName } from '@/utils/common'
 import ResponsiveColumn from '@/components/ResponsiveColumn.vue'
 import { useRoute } from 'vue-router'
-import { boxList, store } from '@/utils/store'
+import { boxList, store, renderMailbox } from '@/utils/store'
 import type {contextMenuFunc} from '@/utils/store'
-import { IEmailProperties } from 'jmap-client-ts/lib/types'
+import { IEmailGetResponse, IEmailProperties } from 'jmap-client-ts/lib/types'
 const contextMenu = inject('contextMenu') as contextMenuFunc
 const route = useRoute()
 
@@ -172,6 +172,82 @@ function select() {
 function cancelSelect() {
   selectMode.value = false
 }
+function trash() {
+  if (store.currentMbox.accountId != $globalState.accountId) {
+    store.msgList.forEach(item => {item.checked = false})
+    return
+  }
+
+  const trashId = getTrashMbox()
+  if (trashId == null) {
+    return
+  }
+
+  const ids: string[] = []
+  let unseenCount = 0
+  store.msgList.forEach(item => {
+    if (item.checked) {
+      item.checked = false
+      ids.push(item.threadId)
+      if (!item.seen) {
+        unseenCount ++
+      }
+    }
+  })
+  if (ids.length == 0) return
+
+  $globalState.jclient?.client.limitedMethods([
+    ['Thread/get', {
+      accountId: store.currentMbox.accountId,
+      'ids': ids,
+    }, '0'],
+    ['Email/get', {
+      accountId: store.currentMbox.accountId,
+      '#ids': { resultOf: '0', name: 'Thread/get', path: '/list/*/emailIds' },
+      properties: ['mailboxIds'],
+    }, '1'],
+  ]).then(value => {
+    const response = value[1] as IEmailGetResponse
+    const updateObj: {[id: string]: Partial<IEmailProperties>} = {}
+
+    response.list.forEach(item => {
+      if (item.mailboxIds[store.currentMbox.id] == true) {
+        delete item.mailboxIds[store.currentMbox.id]
+        item.mailboxIds[trashId] = true
+        updateObj[item.id] = {
+          mailboxIds: item.mailboxIds,
+        }
+      }
+    })
+    $globalState.jclient?.client.email_set({
+      accountId: store.currentMbox.accountId,
+      update: updateObj,
+    }).then(value => {
+      console.log('email_set', updateObj, value)
+      store.currentMbox.totalThreads -= ids.length
+      boxList.forEach(item => {
+        if (item.id == store.currentMbox.id && item.props) {
+          item.props.unreadThreads -= unseenCount
+          item.props.totalThreads -= ids.length
+        }
+
+        if (item.id == trashId && item.props) {
+          item.props.unreadThreads += unseenCount
+          item.props.totalThreads += ids.length
+        }
+      })
+      let currentPos = store.paginationData.prevPos + 50
+      if (store.paginationData.nextPos == -1 && ids.length == store.msgList.length) {
+        // clear last page ...
+        currentPos -= 50
+        if (currentPos == -50) {
+          currentPos = 0
+        }
+      }
+      renderMailbox(currentPos)
+    })
+  })
+}
 </script>
 <template>
   <ResponsiveColumn>
@@ -254,7 +330,7 @@ function cancelSelect() {
         <font-awesome-icon icon="arrow-pointer" />
         <i class="title">Select</i>
       </span>
-      <span class="toolbar-icon">
+      <span class="toolbar-icon" @click="trash()">
         <font-awesome-icon icon="trash-can" />
         <i class="title">Trash</i>
       </span>
