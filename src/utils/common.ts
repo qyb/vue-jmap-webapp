@@ -21,7 +21,7 @@ export function fuzzyDatetime (now: number, arg: Date): string {
   } else if (delta < day * 5) {
     fuzzy = weekday[arg.getDay()]
   } else {
-    fuzzy = `${arg.getFullYear()}-${arg.getMonth()}-${arg.getDate()}`
+    fuzzy = `${arg.getFullYear()}-${arg.getMonth()+1}-${arg.getDate()}`
   }
   return fuzzy
 }
