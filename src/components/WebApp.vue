@@ -120,9 +120,11 @@ function switchMailbox (arg: MailboxItem, accountId: string | null = $globalStat
 }
 
 onMounted(() => {
-  const h = getClientHeight()
+  boxList.length = 0
+  otherAccounts.length = 0
+
   const w = getClientWidth()
-  console.log(`screenSize: (${w}, ${h})`)
+  console.log(`screenSize: (${w}, ${getClientHeight()})`)
 
   /**
    * mini is the same as compact for WebApp component
