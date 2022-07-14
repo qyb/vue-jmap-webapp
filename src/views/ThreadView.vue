@@ -173,13 +173,12 @@ function cancelSelect() {
   selectMode.value = false
 }
 function trash() {
-  if (store.currentMbox.accountId != $globalState.accountId) {
-    store.msgList.forEach(item => {item.checked = false})
-    return
-  }
-
   const trashId = getTrashMbox()
-  if (trashId == null) {
+
+  if (store.currentMbox.accountId != $globalState.accountId
+    || trashId == null
+    || trashId == store.currentMbox.id) {
+    store.msgList.forEach(item => {item.checked = false})
     return
   }
 
