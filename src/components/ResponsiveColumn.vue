@@ -3,6 +3,7 @@ import { onMounted, ref, watch, inject, Ref } from 'vue'
 import { store } from '@/utils/store'
 import type {contextMenuFunc} from '@/utils/store'
 import { MINI_STATE, FULL_STATE } from '@/utils/screen'
+import { $globalState } from '@/utils/global'
 
 const showLeftInRight = ref(false)
 const leftInMiniUI = inject('leftInMiniUI') as Ref<boolean>
@@ -27,7 +28,7 @@ watch(
   (newState, oldState) => {
     if (newState == MINI_STATE) {
       // emit `contextMenu` in toolbar
-      if (store.focusRightColumn) {
+      if ($globalState.focusRightColumn) {
         showLeftInRight.value = false
         contextMenu(true)
       } else {

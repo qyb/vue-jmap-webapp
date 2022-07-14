@@ -6,16 +6,19 @@ interface globalState {
   accountId: string | null
   jclient?: JClient
   loginEmail?: string  // define VITE_DEFAULT_DOMAIN in .env.local; login or login@defaultdomain
+  focusRightColumn: boolean, // focus on right column when collapsing width
 }
 
 export const $globalState: globalState = {
   permission: -1,
-  accountId: null
+  accountId: null,
+  focusRightColumn: false,
 }
 
 export function resetGlobalState(): void {
   $globalState.permission = -1
   $globalState.accountId = null
+  $globalState.focusRightColumn = false
   $globalState.jclient = undefined
   $globalState.loginEmail = undefined
 }
@@ -44,6 +47,7 @@ export declare type MessageLIST = Array<{
   preview: string
   seen: boolean
   attachments: boolean
+  checked: boolean
 }>
 export declare type MsgListPagination = {
   prevPos: number,
@@ -73,7 +77,7 @@ export declare type ThreadContents = Array<{
 }>
 export declare type MailboxInfo = {
   id: string
-  total: number
+  totalThreads: number
   accountId: string | null
 }
 export declare type MailboxItem = {

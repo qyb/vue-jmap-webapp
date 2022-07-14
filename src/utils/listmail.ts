@@ -1,6 +1,7 @@
 import { IEmailAddress, IEmailProperties } from "jmap-client-ts/lib/types"
 import { fuzzyDatetime } from "./common"
-import { $globalMailbox, $globalState, MailboxInfo, MessageLIST, MsgListPagination, NULL_SUBJECT } from "./global"
+import { $globalMailbox, $globalState, MailboxInfo, NULL_SUBJECT } from "./global"
+import { store } from "./store"
 
 function memberOfThread(outbound: boolean, addrList: IEmailAddress[]): string {
   let addr:string[] = []
@@ -15,8 +16,7 @@ function memberOfThread(outbound: boolean, addrList: IEmailAddress[]): string {
   return (outbound?'Recipient: ':'') + addr.join(',')
 }
 
-export function fillMsgList (list: IEmailProperties[], mailbox: MailboxInfo, pos: number,
-  msgList: MessageLIST, paginationData: MsgListPagination): void {
+export function fillMsgList (list: IEmailProperties[], mailbox: MailboxInfo, pos: number): void {
 
   let outbound = false
   if ($globalMailbox[mailbox.id] == 'sent' || $globalMailbox[mailbox.id] == 'drafts') {
@@ -25,7 +25,7 @@ export function fillMsgList (list: IEmailProperties[], mailbox: MailboxInfo, pos
 
   const now = (new Date()).getTime()
 
-  msgList.length = 0
+  store.msgList.length = 0
 
   list.forEach((item) => {
     let seen = false
@@ -37,7 +37,7 @@ export function fillMsgList (list: IEmailProperties[], mailbox: MailboxInfo, pos
       attachments = true
     }
     const datetime = new Date(item.receivedAt)
-    msgList.push({
+    store.msgList.push({
       threadId: item.threadId,
       // msglist_get guarantee from/to won't be null
       addr: memberOfThread(outbound,  (outbound?item.to:item.from) as IEmailAddress[]),
@@ -46,12 +46,12 @@ export function fillMsgList (list: IEmailProperties[], mailbox: MailboxInfo, pos
       preview: item.preview,
       seen: seen,
       attachments: attachments,
+      checked: false,
     })
   })
 
   const length = list.length
-  paginationData.currList = `${pos+1}-${pos+length},`
-  paginationData.prevPos = pos - 50
-  paginationData.nextPos = (pos + length == mailbox.total) ? -1 : pos + 50
-  // console.log(msgList)
+  store.paginationData.currList = `${pos+1}-${pos+length},`
+  store.paginationData.prevPos = pos - 50
+  store.paginationData.nextPos = (pos + length == mailbox.totalThreads) ? -1 : pos + 50
 }

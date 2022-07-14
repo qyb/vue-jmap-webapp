@@ -41,7 +41,7 @@ const totalEmails = ref(0)
 function showCreateForm() {
   resetState()
   createPanel.value = true
-  store.focusRightColumn = true
+  $globalState.focusRightColumn = true
   if (store.widthState == MINI_STATE) {
     contextMenu(true)
   }
@@ -67,7 +67,7 @@ function showMailbox(mailbox: MailboxItem, accountId: string | null) {
     currentAccountId = accountId
     currentMailbox = mailbox
 
-    store.focusRightColumn = true
+    $globalState.focusRightColumn = true
     if (store.widthState == MINI_STATE) {
       contextMenu(true)
     }
@@ -82,7 +82,7 @@ function resetState() {
 }
 function clearForms() {
   resetState()
-  store.focusRightColumn = false
+  $globalState.focusRightColumn = false
   if (store.widthState == MINI_STATE) {
     contextMenu(false)
   }
@@ -193,7 +193,7 @@ function deleteMailbox() {
 }
 
 onMounted(() => {
-  store.focusRightColumn = false
+  $globalState.focusRightColumn = false
 })
 
 watch(

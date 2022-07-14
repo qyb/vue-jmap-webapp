@@ -1,60 +1,102 @@
 <script setup lang="ts">
-import { MessageLIST, MsgListPagination } from '@/utils/global'
-/*
-  基本思路是，网络操作在父组件进行
-  即: emit->MailView->props/MsgList
- */
+import { $globalState, PLACEHOLDER_MAILBOXID } from '@/utils/global'
+import { store } from '@/utils/store'
+import { watch, onMounted } from 'vue'
+import { fillMsgList } from '@/utils/listmail'
+
 const emit = defineEmits<{
   (e: 'read', id: string, subject: string): void
-  (e: 'page', pos: number): void
+  (e: 'cancelSelect'): void
 }>()
 
 const props = defineProps<{
-  msgList: MessageLIST
-  totalThreads: number
-  paginationData: MsgListPagination
+  selectMode: boolean
 }>()
+
+watch(
+  () => store.currentMbox,
+  (newArg, oldArg) => {
+    if (newArg.id != PLACEHOLDER_MAILBOXID) {
+      renderMailbox()
+    }
+  }
+)
+function renderMailbox (pos: number = 0): void {
+  $globalState.jclient?.msglist_get(store.currentMbox.accountId, store.currentMbox.id, pos)
+  .then(list=>{
+    fillMsgList(list, store.currentMbox, pos)
+  })
+}
 
 function switchPos (pos: number) {
   if (pos >= 0) {
-    emit('page', pos)
+    renderMailbox(pos)
   } else {console.log(pos)}
 }
 
-function readThread (id: string, index: number, subject: string) {
-  props.msgList[index].seen = true // TODO: write seen state back
-  emit('read', id, subject)
+function readThread (threadId: string, index: number, subject: string) {
+  store.msgList[index].seen = true
+  emit('read', threadId, subject)
 }
+
+function cancelSelect () {
+  emit('cancelSelect')
+}
+
+onMounted(() => {
+  /**
+   * when ResponsiveColumn collapse, THIS component will be unmounted
+   * from left-column, then re-mount in right-column. Therefore,
+   * Reactive data, such as `msgList`, `paginationData`, should be put
+   * into `store`.
+   */
+})
 </script>
 <template>
   <div class="msglist">
+    <div class="minibar">
+      <div v-if="selectMode" style="display: flex; justify-content: space-around;width: 100%;">
+        <button>current page</button>
+        <button>all threads</button>
+        <button>reverse</button>
+        <button @click="cancelSelect()">cancel</button>
+      </div>
+      <div v-else>
+        <input value="search..." /> <button disabled>PLACEHOLDER search</button>
+      </div>
+    </div>
     <ul>
-      <li v-for="(item, index) in msgList" :key="item.threadId" style="margin-top: 10px;" @click="readThread(item.threadId, index, item.subject)">
-        <div :style="item.seen ? 'font-weight: normal':'font-weight: bold'">
-          <div class="single-line">
-            {{item.addr}}
-          </div>
-          <div class="subject-line">
-            <span class="single-line"><font-awesome-icon v-if="item.attachments" icon="paperclip" />{{item.subject}}</span>
-            <span class="date-line">{{item.receivedAt}}</span>
-          </div>
+      <li v-for="(item, index) in store.msgList" :key="item.threadId" style="margin-top: 10px; display: flex; align-items: center;">
+        <div v-if="selectMode">
+          <input type="checkbox" v-model="item.checked" />
         </div>
-        <div class="single-line preview">
-          {{item.preview}}
+        <div style="flex: 1; width: 0; /* 防止被子元素撑出 */" @click="readThread(item.threadId, index, item.subject)">
+          <div :style="item.seen ? 'font-weight: normal':'font-weight: bold'">
+            <div class="single-line">
+              {{item.addr}}
+            </div>
+            <div class="subject-line">
+              <span class="single-line"><font-awesome-icon v-if="item.attachments" icon="paperclip" />{{item.subject}}</span>
+              <span class="date-line">{{item.receivedAt}}</span>
+            </div>
+          </div>
+          <div class="single-line preview">
+            {{item.preview}}
 
+          </div>
         </div>
       </li>
     </ul>
     <div class="pagination">
-      <span v-if="totalThreads > 50">
-        <button @click="switchPos(paginationData.prevPos)" :disabled="paginationData.prevPos<0">prev</button>
+      <span v-if="store.currentMbox.totalThreads > 50">
+        <button @click="switchPos(store.paginationData.prevPos)" :disabled="store.paginationData.prevPos<0">prev</button>
       </span>
       <span style="flex: 1; text-align: center;">
-        {{`${totalThreads > 50 ? paginationData.currList : ''}`}}
-        {{`${totalThreads} ${totalThreads > 1 ? 'Threads':'Thread'}`}}
+        {{`${store.currentMbox.totalThreads > 50 ? store.paginationData.currList : ''}`}}
+        {{`${store.currentMbox.totalThreads} ${store.currentMbox.totalThreads > 1 ? 'Threads':'Thread'}`}}
       </span>
-      <span v-if="totalThreads > 50">
-        <button @click="switchPos(paginationData.nextPos)" :disabled="paginationData.nextPos<0">next</button>
+      <span v-if="store.currentMbox.totalThreads > 50">
+        <button @click="switchPos(store.paginationData.nextPos)" :disabled="store.paginationData.nextPos<0">next</button>
       </span>
     </div>
   </div>
@@ -114,5 +156,15 @@ function readThread (id: string, index: number, subject: string) {
   justify-content: space-between;
   padding-left: 4px;
   padding-right: 4px;
+}
+.minibar {
+  height: 32px;
+  line-height: 32px;
+  padding-left: 4px;
+  padding-right: 4px;
+  border-bottom: 1px solid #344955;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

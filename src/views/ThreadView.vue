@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { onMounted, watch, reactive, ref, nextTick, inject } from 'vue'
 import { MINI_STATE } from '@/utils/screen'
-import { PLACEHOLDER_MAILBOXID, NULL_SUBJECT,
-  MessageLIST, MsgListPagination,
-  ThreadContents, MailboxInfo,
-  $globalState
-} from '@/utils/global'
+import { NULL_SUBJECT, ThreadContents, $globalState } from '@/utils/global'
 import MsglistView from '@/components/MsgList.vue'
 import { fillThreadContents, replaceCID } from '@/utils/readmail'
-import { fillMsgList } from '@/utils/listmail'
 import { JAttachment } from '@/utils/jclient'
 import { fuzzyDatetime, downloadFName } from '@/utils/common'
 import ResponsiveColumn from '@/components/ResponsiveColumn.vue'
@@ -19,7 +14,6 @@ import { IEmailProperties } from 'jmap-client-ts/lib/types'
 const contextMenu = inject('contextMenu') as contextMenuFunc
 const route = useRoute()
 
-let currentAccountId: string | null = null
 const msgcontent_id = 'msgcontent' // use msgcontent_id to scrollTo top (0,0)
 
 const hasRemoteResource = ref(false)
@@ -33,28 +27,8 @@ function initMediaUI() {
 
 const threadSubject = ref('') // current Thread
 
-// next three variables pass to MsgList component
-const totalThreads = ref(0)
-const msgList: MessageLIST = reactive([])
-const paginationData: MsgListPagination = reactive({
-  prevPos: -1,
-  nextPos: -1,
-  currList: '',
-})
-
-function renderMailbox (mailbox: MailboxInfo, pos: number = 0): void {
-  currentAccountId = mailbox.accountId
-  $globalState.jclient?.msglist_get(mailbox.accountId, mailbox.id, pos)
-  .then(list=>{
-    fillMsgList(list, mailbox, pos, msgList, paginationData)
-  })
-}
-
-function switchPos (pos: number) {
-  if (pos >= 0) {
-    renderMailbox(mailboxInfo, pos)
-  } else {console.log(pos)}
-}
+// next variable pass to MsgList component
+const selectMode = ref(false)
 
 function toggleCollapse(index: number) {
   if (index == (msgContents.length - 1)) {
@@ -73,8 +47,8 @@ function _fuzzyDatetime(datetime: Date) {
 function readThread (id: string, subject: string) {
   initMediaUI()
 
-  $globalState.jclient?.thread_get(currentAccountId, id).then(list => {
-    store.focusRightColumn = true
+  $globalState.jclient?.thread_get(store.currentMbox.accountId, id).then(list => {
+    $globalState.focusRightColumn = true
     if (store.widthState == MINI_STATE) {
       contextMenu(true)
     }
@@ -91,13 +65,13 @@ function readThread (id: string, subject: string) {
     })
     if (Object.keys(setSeenObj).length > 0) {
       $globalState.jclient?.client.email_set({
-        accountId: currentAccountId,
+        accountId: store.currentMbox.accountId,
         update: setSeenObj,
       }).then(result => {
         console.log('Seen:', result.updated)
-        if (currentAccountId == $globalState.accountId) {
+        if (store.currentMbox.accountId == $globalState.accountId) {
           boxList.forEach(item => {
-            if (item.id == mailboxInfo.id && item.props) {
+            if (item.id == store.currentMbox.id && item.props) {
               if (item.props.unreadThreads > 0) {
                 item.props.unreadThreads --
               }
@@ -133,7 +107,7 @@ function readThread (id: string, subject: string) {
        * replaceCID use document.getElementsByClassName(blobId), it should be called after
        * reactive-objects have been render as HTMLElements.
        **/
-      replaceCID(currentAccountId, inlineBlobList)
+      replaceCID(store.currentMbox.accountId, inlineBlobList)
       document.getElementById(msgcontent_id)?.scrollTo(0, 0)
     })
   })
@@ -153,7 +127,7 @@ function headerView(index: number): void {
   showModal.value = true
 }
 function download(blobId: string, fname: string, type: string): void {
-  let accountId = currentAccountId as string
+  let accountId = store.currentMbox.accountId as string
   $globalState.jclient?.client.download(accountId, blobId, fname, type).then(blob => {
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
@@ -170,36 +144,41 @@ function downloadAtt(attachment: JAttachment): void {
 }
 
 onMounted(() => {
-  store.focusRightColumn = false
+  $globalState.focusRightColumn = false
   if (route.query.id && route.query.accountId && route.query.total) {
     console.log('dev-mode: render mailview.vue for %s or switch from other function-block', route.query.id)
     parseQuery(route.query)
-    renderMailbox(mailboxInfo)
-    totalThreads.value = mailboxInfo.total
   }
 })
 
-const mailboxInfo: MailboxInfo = {id: PLACEHOLDER_MAILBOXID, total: 0, accountId: null}
 function parseQuery(obj: any) {
-  mailboxInfo.id = obj.id as string
-  mailboxInfo.accountId = obj.accountId as string
-  mailboxInfo.total = Number.parseInt(obj.total as string, 10)
+  store.currentMbox = {
+    id: obj.id as string,
+    totalThreads: Number.parseInt(obj.total as string, 10),
+    accountId: obj.accountId as string,
+  }
 }
+
 watch(
   () => route.query,
   (newArg, oldArg) => {
     parseQuery(newArg)
-    renderMailbox(mailboxInfo)
-    totalThreads.value = mailboxInfo.total
   },
 )
 
+function select() {
+  selectMode.value = true
+}
+function cancelSelect() {
+  selectMode.value = false
+}
 </script>
 <template>
   <ResponsiveColumn>
     <template v-slot:left>
-      <MsglistView :msgList="msgList" :totalThreads="totalThreads" :paginationData="paginationData"
-      @page="switchPos"
+      <MsglistView
+      :selectMode="selectMode"
+      @cancel-select="cancelSelect"
       @read="readThread" />
     </template>
     <template v-slot:right><div style="overflow-y: auto; height: 100%;" :id="msgcontent_id">
@@ -271,7 +250,7 @@ watch(
       </div>
     </div></template>
     <template v-slot:left-toolbar>
-      <span class="toolbar-icon">
+      <span class="toolbar-icon" @click="select()">
         <font-awesome-icon icon="arrow-pointer" />
         <i class="title">Select</i>
       </span>
