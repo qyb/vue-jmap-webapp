@@ -195,9 +195,11 @@ onMounted(() => {
       if (accountId != $globalState.accountId) {
         client.mailbox_get({
           accountId: accountId,
+          // properties: ['id', 'name', 'totalThreads', 'unreadThreads', 'isSubscribed', 'myRights', 'isSeenShared'],
         }).then(result => {
           if (result.list.length > 0) {
             result.list.forEach(item => {
+              item.unreadThreads = 0 // disable unreadThreads count for shared mailbox. see ThreadView.vue:readThread()
               otherAccounts.push({
                 accountId: accountId,
                 box: {

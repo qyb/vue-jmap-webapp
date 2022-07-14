@@ -104,6 +104,16 @@ function readThread (id: string, subject: string) {
               return
             }
           })
+        } else {
+          /**
+           * do nothing in shared mailbox
+           *
+           * 1. cyrus always return shared-seen-state unreadEmails/unreadThreads count
+           *    https://github.com/cyrusimap/cyrus-imapd/issues/4178
+           *    unreadThreads is correct only in sharedseen:true mailbox
+           *
+           * 2. cannot get isSeenShared if imapd.conf `jmap_nonstandard_extensions` default off
+           */
         }
       })
     }
