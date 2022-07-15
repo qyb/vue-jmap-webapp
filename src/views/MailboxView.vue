@@ -284,25 +284,5 @@ watch(
 <style>
 @import "@vueform/toggle/themes/default.css";
 
-.mfolder-list {
-  background-color: #edf0f2;
-  color: #232F34; /* 800 */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow-y: scroll;
-  padding-left: 8px;
-  padding-right: 8px;
-}
-.mfolder-list-item {
-  border-bottom: 1px solid #344955;
-  height: 28px;
-  text-align: left;
-  font-size: small;
-}
-.mfolder-list-itemlayout {
-  display:flex;
-  justify-content: space-between;
-  align-items: center;
-}
+@import "@/assets/default.css";
 </style>

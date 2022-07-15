@@ -7,6 +7,7 @@ import { fillThreadContents, replaceCID } from '@/utils/readmail'
 import { JAttachment } from '@/utils/jclient'
 import { fuzzyDatetime, downloadFName } from '@/utils/common'
 import ResponsiveColumn from '@/components/ResponsiveColumn.vue'
+import ModalComponent from '@/components/Modal.vue'
 import { useRoute } from 'vue-router'
 import { boxList, store, renderMailbox } from '@/utils/store'
 import type {contextMenuFunc} from '@/utils/store'
@@ -174,10 +175,13 @@ function cancelSelect() {
 }
 function trash() {
   const trashId = getTrashMbox()
-
-  if (store.currentMbox.accountId != $globalState.accountId
-    || trashId == null
-    || trashId == store.currentMbox.id) {
+  if (trashId == null) {
+    return
+  }
+  moveTo(trashId)
+}
+function moveTo(targetId: string) {
+  if (store.currentMbox.accountId != $globalState.accountId || targetId == store.currentMbox.id) {
     store.msgList.forEach(item => {item.checked = false})
     return
   }
@@ -186,7 +190,7 @@ function trash() {
   let unseenCount = 0
   store.msgList.forEach(item => {
     if (item.checked) {
-      item.checked = false
+      item.checked = false // unset checked
       ids.push(item.threadId)
       if (!item.seen) {
         unseenCount ++
@@ -212,7 +216,7 @@ function trash() {
     response.list.forEach(item => {
       if (item.mailboxIds[store.currentMbox.id] == true) {
         delete item.mailboxIds[store.currentMbox.id]
-        item.mailboxIds[trashId] = true
+        item.mailboxIds[targetId] = true
         updateObj[item.id] = {
           mailboxIds: item.mailboxIds,
         }
@@ -230,7 +234,7 @@ function trash() {
           item.props.totalThreads -= ids.length
         }
 
-        if (item.id == trashId && item.props) {
+        if (item.id == targetId && item.props) {
           item.props.unreadThreads += unseenCount
           item.props.totalThreads += ids.length
         }
@@ -247,14 +251,50 @@ function trash() {
     })
   })
 }
+const showSelectTarget = ref(false)
+const picked = ref('')
+function selectTarget() {
+  if (selectMode.value) {
+    showSelectTarget.value = true
+  }
+}
+function doMove() {
+  moveTo(picked.value)
+}
 </script>
 <template>
   <ResponsiveColumn>
     <template v-slot:left>
       <MsglistView
-      :selectMode="selectMode"
-      @cancel-select="cancelSelect"
-      @read="readThread" />
+        :selectMode="selectMode"
+        @cancel-select="cancelSelect"
+        @read="readThread"
+      />
+      <ModalComponent
+        :modal="showSelectTarget"
+        :close="()=>{showSelectTarget=false}">
+        <template v-slot:title>select target</template>
+        <template v-slot:content>
+          <div class="mfolder-list">
+            <ul>
+              <li v-for="item in boxList" :key="item.id"
+                class="mfolder-list-item mfolder-list-itemlayout"
+              >
+                <span style="flex:1; cursor: pointer;">{{ item.name }}</span>
+                <span>
+                  <input type="radio" name="foo" v-model="picked"
+                    :value="item.id"
+                    :disabled="item.id == store.currentMbox.id"
+                  />
+                </span>
+              </li>
+            </ul>
+          </div>
+        </template>
+        <template v-slot:bottom>
+          <button @click="moveTo(picked)">Confirm</button>
+        </template>
+      </ModalComponent>
     </template>
     <template v-slot:right><div style="overflow-y: auto; height: 100%;" :id="msgcontent_id">
       <div class="thread-header">
@@ -333,7 +373,7 @@ function trash() {
         <font-awesome-icon icon="trash-can" />
         <i class="title">Trash</i>
       </span>
-      <span class="toolbar-icon">
+      <span class="toolbar-icon" @click="selectTarget()">
         <font-awesome-icon icon="folder-open" />
         <i class="title">Move</i>
       </span>
@@ -342,6 +382,8 @@ function trash() {
 </template>
 
 <style>
+@import "@/assets/default.css";
+
 .thread-header {
   padding-left: 6px;
   padding-right: 6px;
