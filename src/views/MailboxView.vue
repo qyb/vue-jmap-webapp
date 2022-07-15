@@ -113,7 +113,13 @@ function newMailbox() {
          *  isSubscribed: false
          *  showAsLabel: true
          *  sortOrder: 10
+         *
+         * if we move mail to new mailbox, unreadThreads/totalThreads should set here
          */
+        result.created[id].totalEmails = 0
+        result.created[id].totalThreads = 0
+        result.created[id].unreadEmails = 0
+        result.created[id].unreadThreads = 0
         boxList.push({
           name: newMailboxName.value,
           id: result.created[id].id,

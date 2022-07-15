@@ -251,6 +251,10 @@ function moveTo(targetId: string) {
     })
   })
 }
+function doMove() {
+  moveTo(picked.value)
+  showSelectTarget.value = false
+}
 const showSelectTarget = ref(false)
 const picked = ref('')
 function selectTarget() {
@@ -289,7 +293,7 @@ function selectTarget() {
           </div>
         </template>
         <template v-slot:bottom>
-          <button @click="moveTo(picked)">Confirm</button>
+          <button @click="doMove()">Confirm</button>
         </template>
       </ModalComponent>
     </template>
