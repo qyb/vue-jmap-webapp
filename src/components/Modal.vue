@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { store } from '@/utils/store'
 import { MINI_STATE } from '@/utils/screen'
-import { watch, ref } from 'vue'
 const props = defineProps<{
   modal: boolean
   close: ()=>void
 }>()
-
 </script>
 <template>
   <div v-if="modal"
@@ -29,6 +27,3 @@ const props = defineProps<{
     </div>
   </div>
 </template>
-<style>
-
-</style>

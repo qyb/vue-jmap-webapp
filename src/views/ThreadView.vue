@@ -258,9 +258,6 @@ function selectTarget() {
     showSelectTarget.value = true
   }
 }
-function doMove() {
-  moveTo(picked.value)
-}
 </script>
 <template>
   <ResponsiveColumn>
@@ -296,74 +293,68 @@ function doMove() {
         </template>
       </ModalComponent>
     </template>
-    <template v-slot:right><div style="overflow-y: auto; height: 100%;" :id="msgcontent_id">
-      <div class="thread-header">
-        <div class="thread-subject">{{ threadSubject }}</div>
-        <div v-if="hasRemoteResource && !showRemoteResource" class="remote-resource-warning">
-          <font-awesome-icon icon="triangle-exclamation"/>
-          To protect your privacy remote resources have been blocked.
-          <button @click="showRemoteResource=true">
-            allow
-          </button>
-        </div>
-      </div>
-      <div class="thread-email" v-for="(item, index) in msgContents" :key="item.msgId">
-        <div @click="toggleCollapse(index)" class="thread-email-header">
-          <div v-if="item.collapse" class="thread-email-collapse">
-            <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
-            <span class="thread-email-preview"><font-awesome-icon v-if="item.attachments.length > 0" icon="paperclip" />{{item.preview}}</span>
-          </div>
-          <div v-else>
-            <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
-          </div>
-          <!-- collect elements in ONE-DIV to avoid flex-space-between -->
-          <div v-if="item.collapse">
-            <span class="thread-email-date">{{_fuzzyDatetime(item.receivedAt)}}</span>
-          </div>
-          <div v-else>
-            <span class="thread-email-date">{{_fuzzyDatetime(item.receivedAt)}}</span>
-            <span class="thread-email-context">
-              <font-awesome-icon icon="envelope-open-text" style="padding-left: 6px;" @click.stop="headerView(index)" />
-            </span>
+    <template v-slot:right>
+      <div style="overflow-y: auto; height: 100%;" :id="msgcontent_id">
+        <div class="thread-header">
+          <div class="thread-subject">{{ threadSubject }}</div>
+          <div v-if="hasRemoteResource && !showRemoteResource" class="remote-resource-warning">
+            <font-awesome-icon icon="triangle-exclamation"/>
+            To protect your privacy remote resources have been blocked.
+            <button @click="showRemoteResource=true">
+              allow
+            </button>
           </div>
         </div>
-        <div class="thread-email-content" v-show="!item.collapse">
-          <div v-for="body in item.body" :key="body.partId">
-            <div v-if="body.txt" class="like-pre" v-text="body.safeContent"></div>
-            <div v-else class="normal-block">
-              <div v-if="showRemoteResource && body.withRemoteResource" v-html="body.withRemoteResource"></div>
-              <div v-else v-html="body.safeContent"></div>
+        <div class="thread-email" v-for="(item, index) in msgContents" :key="item.msgId">
+          <div @click="toggleCollapse(index)" class="thread-email-header">
+            <div v-if="item.collapse" class="thread-email-collapse">
+              <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
+              <span class="thread-email-preview"><font-awesome-icon v-if="item.attachments.length > 0" icon="paperclip" />{{item.preview}}</span>
+            </div>
+            <div v-else>
+              <span class="thread-email-from" :title="item.from.email">{{item.from.name}}</span>
+            </div>
+            <!-- collect elements in ONE-DIV to avoid flex-space-between -->
+            <div v-if="item.collapse">
+              <span class="thread-email-date">{{_fuzzyDatetime(item.receivedAt)}}</span>
+            </div>
+            <div v-else>
+              <span class="thread-email-date">{{_fuzzyDatetime(item.receivedAt)}}</span>
+              <span class="thread-email-context">
+                <font-awesome-icon icon="envelope-open-text" style="padding-left: 6px;" @click.stop="headerView(index)" />
+              </span>
             </div>
           </div>
-          <div v-if="item.attachments.length > 0" class="thread-email-attachments-area">
-            <div v-for="att in item.attachments" class="thread-email-attachment">
+          <div class="thread-email-content" v-show="!item.collapse">
+            <div v-for="body in item.body" :key="body.partId">
+              <div v-if="body.txt" class="like-pre" v-text="body.safeContent"></div>
+              <div v-else class="normal-block">
+                <div v-if="showRemoteResource && body.withRemoteResource" v-html="body.withRemoteResource"></div>
+                <div v-else v-html="body.safeContent"></div>
+              </div>
+            </div>
+            <div v-if="item.attachments.length > 0" class="thread-email-attachments-area">
+              <div v-for="att in item.attachments" class="thread-email-attachment">
 
-              <font-awesome-icon v-if="item.attachments.length > 0" icon="paperclip" />
-              <span :title="`size: ${att.size}`" @click="downloadAtt(att)">{{ att.name }}</span>
+                <font-awesome-icon v-if="item.attachments.length > 0" icon="paperclip" />
+                <span :title="`size: ${att.size}`" @click="downloadAtt(att)">{{ att.name }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div v-if="showModal"
-        style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); z-index: 500;
-        display: flex;
-        align-items: center;
-        justify-content: center;">
-        <div style="background-color: #fefefe; display: flex; flex-direction: column;"
-          :class="store.widthState == MINI_STATE?'mini-modal-content':'normal-modal-content'">
-          <div class="appbar">
-            <span style="color: #d2dbe0;">CenterIt</span>
-            <span style="vertical-align: middle;">Email Header Detail...</span>
-            <button @click="showModal=false" style="float: right; margin-right: 6px;">close</button>
-          </div>
+      <ModalComponent
+        :modal="showModal"
+        :close="()=>{showModal=false}">
+        <template v-slot:title>Email Header Detail...</template>
+        <template v-slot:content>
           <div style="flex: 1; margin: 6px; overflow-y: auto;" class="as-pre">{{headerLines}}</div>
-          <div style="display: flex; justify-content: center; align-items: center;
-            height: 32px; border-top: 1px solid #4A6572; ">
-            <button style="" @click="downloadEml" >download email</button>
-          </div>
-        </div>
-      </div>
-    </div></template>
+        </template>
+        <template v-slot:bottom>
+          <button @click="downloadEml">download email</button>
+        </template>
+      </ModalComponent>
+    </template>
     <template v-slot:left-toolbar>
       <span class="toolbar-icon" @click="select()">
         <font-awesome-icon icon="arrow-pointer" />
