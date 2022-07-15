@@ -23,7 +23,7 @@ Now it's at an early stage with a few functions: login(auth), list mailboxes, li
 2. Message Operation (2022 Jul)
     * ~~subscribe mailbox~~ **Done.** 2022.07.12
     * ~~create mailbox~~ **Done.** 2022.07.13
-    * move/delete mail
+    * ~~move/delete mail~~ **Done.** 2022.07.15
     * addressbook
 
 3. Send Message (2022 Aug)
