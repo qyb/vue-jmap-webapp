@@ -9,6 +9,8 @@ export const store = reactive({
   currentMbox: {id: PLACEHOLDER_MAILBOXID, totalThreads: 0, accountId: null} as MailboxInfo,
   msgList: [] as MessageLIST,
   paginationData: {prevPos: -1, nextPos: -1, currList: ''} as MsgListPagination,
+  trashId: '',
+  junkId: '',
 })
 
 export const boxList: Array<MailboxItem> = reactive([])

@@ -38,9 +38,9 @@ export const PLACEHOLDER_MAILBOXID = 'foo-bar'
 export const NULL_SUBJECT = '(null subject)'
 
 export const $globalMailbox: { [mailboxId:string]: string|null} = {} // id: role
-export function getTrashMbox(): string | null {
+export function getMboxByRole(role: string): string | null {
   for (const [key, value] of Object.entries($globalMailbox)) {
-    if (value == 'trash') {
+    if (value == role) {
       return key
     }
   }

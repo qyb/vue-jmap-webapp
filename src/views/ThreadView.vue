@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, watch, reactive, ref, nextTick, inject } from 'vue'
 import { MINI_STATE } from '@/utils/screen'
-import { NULL_SUBJECT, ThreadContents, $globalState, getTrashMbox } from '@/utils/global'
+import { NULL_SUBJECT, ThreadContents, $globalState } from '@/utils/global'
 import MsglistView from '@/components/MsgList.vue'
 import { fillThreadContents, replaceCID } from '@/utils/readmail'
 import { JAttachment } from '@/utils/jclient'
@@ -170,22 +170,75 @@ watch(
 function select() {
   selectMode.value = true
 }
+
 function cancelSelect() {
   selectMode.value = false
 }
-function trash() {
-  const trashId = getTrashMbox()
-  if (trashId == null) {
-    return
-  }
-  moveTo(trashId)
-}
-function moveTo(targetId: string) {
-  if (store.currentMbox.accountId != $globalState.accountId || targetId == store.currentMbox.id) {
-    store.msgList.forEach(item => {item.checked = false})
-    return
-  }
 
+function trash () {
+  if (store.trashId == '') {
+    return
+  }
+  moveTo(store.trashId)
+}
+
+function refreshMboxList (unseenCount: number, totalCount: number, targetId?: string) {
+  store.currentMbox.totalThreads -= totalCount
+  boxList.forEach(item => {
+    if (item.id == store.currentMbox.id && item.props) {
+      item.props.unreadThreads -= unseenCount
+      item.props.totalThreads -= totalCount
+    }
+
+    if (targetId && item.id == targetId && item.props) {
+      item.props.unreadThreads += unseenCount
+      item.props.totalThreads += totalCount
+    }
+  })
+  let currentPos = store.paginationData.prevPos + 50
+  if (store.paginationData.nextPos == -1 && totalCount == store.msgList.length) {
+    // clear last page ...
+    currentPos -= 50
+    if (currentPos == -50) {
+      currentPos = 0
+    }
+  }
+  renderMailbox(currentPos)
+}
+
+function empty () {
+  const result = checkedIds(null)
+  if (result == null) return
+  const ids = result.ids
+  const unseenCount = result.unseenCount
+
+  $globalState.jclient?.getEmailPropsByThreadIds(store.currentMbox.accountId, ids, {
+    properties: ['mailboxIds']
+  }).then(value => {
+    const destroyObj: string[] = []
+
+    value.forEach(item => {
+      if (item.mailboxIds[store.currentMbox.id] == true) {
+        destroyObj.push(item.id)
+      }
+    })
+
+    $globalState.jclient?.client.email_set({
+      accountId: store.currentMbox.accountId,
+      destroy: destroyObj,
+    }).then(value => {
+      console.log('email_set', destroyObj, value)
+      refreshMboxList(unseenCount, ids.length)
+    })
+  })
+}
+
+function checkedIds(targetId: string|null): {unseenCount: number, ids: string[]} | null {
+  if (store.currentMbox.accountId != $globalState.accountId
+  || (targetId && targetId == store.currentMbox.id)) {
+    store.msgList.forEach(item => {item.checked = false})
+    return null
+  }
   const ids: string[] = []
   let unseenCount = 0
   store.msgList.forEach(item => {
@@ -197,23 +250,22 @@ function moveTo(targetId: string) {
       }
     }
   })
-  if (ids.length == 0) return
+  if (ids.length == 0) return null
+  return {unseenCount, ids}
+}
 
-  $globalState.jclient?.client.limitedMethods([
-    ['Thread/get', {
-      accountId: store.currentMbox.accountId,
-      'ids': ids,
-    }, '0'],
-    ['Email/get', {
-      accountId: store.currentMbox.accountId,
-      '#ids': { resultOf: '0', name: 'Thread/get', path: '/list/*/emailIds' },
-      properties: ['mailboxIds'],
-    }, '1'],
-  ]).then(value => {
-    const response = value[1] as IEmailGetResponse
+function moveTo(targetId: string) {
+  const result = checkedIds(targetId)
+  if (result == null) return
+  const ids = result.ids
+  const unseenCount = result.unseenCount
+
+  $globalState.jclient?.getEmailPropsByThreadIds(store.currentMbox.accountId, ids, {
+    properties: ['mailboxIds']
+  }).then(value => {
     const updateObj: {[id: string]: Partial<IEmailProperties>} = {}
 
-    response.list.forEach(item => {
+    value.forEach(item => {
       if (item.mailboxIds[store.currentMbox.id] == true) {
         delete item.mailboxIds[store.currentMbox.id]
         item.mailboxIds[targetId] = true
@@ -227,34 +279,16 @@ function moveTo(targetId: string) {
       update: updateObj,
     }).then(value => {
       console.log('email_set', updateObj, value)
-      store.currentMbox.totalThreads -= ids.length
-      boxList.forEach(item => {
-        if (item.id == store.currentMbox.id && item.props) {
-          item.props.unreadThreads -= unseenCount
-          item.props.totalThreads -= ids.length
-        }
-
-        if (item.id == targetId && item.props) {
-          item.props.unreadThreads += unseenCount
-          item.props.totalThreads += ids.length
-        }
-      })
-      let currentPos = store.paginationData.prevPos + 50
-      if (store.paginationData.nextPos == -1 && ids.length == store.msgList.length) {
-        // clear last page ...
-        currentPos -= 50
-        if (currentPos == -50) {
-          currentPos = 0
-        }
-      }
-      renderMailbox(currentPos)
+      refreshMboxList(unseenCount, ids.length, targetId)
     })
   })
 }
+
 function doMove() {
   moveTo(picked.value)
   showSelectTarget.value = false
 }
+
 const showSelectTarget = ref(false)
 const picked = ref('')
 function selectTarget() {
@@ -364,9 +398,13 @@ function selectTarget() {
         <font-awesome-icon icon="arrow-pointer" />
         <i class="title">Select</i>
       </span>
-      <span class="toolbar-icon" @click="trash()">
+      <span v-if="store.currentMbox.id!=store.trashId && store.currentMbox.id!=store.junkId" class="toolbar-icon" @click="trash()">
         <font-awesome-icon icon="trash-can" />
         <i class="title">Trash</i>
+      </span>
+      <span v-else class="toolbar-icon" @click="empty()">
+        <font-awesome-icon icon="recycle" />
+        <i class="title">Destroy</i>
       </span>
       <span class="toolbar-icon" @click="selectTarget()">
         <font-awesome-icon icon="folder-open" />

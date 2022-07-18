@@ -121,12 +121,22 @@ export class JClient {
     })
   }
 
-  public thread_get (accountId: string|null, threadId: string): Promise<IEmailProperties[]> {
+  public getEmailPropsByThreadIds (
+  accountId: string|null,
+  ids: string[],
+  args: {
+    properties: (keyof IEmailProperties)[],
+    bodyProperties?: string[],
+    fetchTextBodyValues?: boolean,
+    fetchHTMLBodyValues?: boolean,
+    fetchAllBodyValues?: boolean,
+    maxBodyValueBytes?: number
+  }): Promise<IEmailProperties[]> {
     return new Promise((resolve, reject) => {
       this.client.limitedMethods([
         ['Thread/get', {
           accountId: accountId,
-          ids: [threadId]
+          ids: ids
         }, '0'],
         ['Email/get', {
           accountId: accountId,
@@ -135,18 +145,29 @@ export class JClient {
             path: '/list/*/emailIds',
             resultOf: '0'
           },
-          properties: [ 'blobId', 'threadId', 'mailboxIds', 'from', 'subject', 'keywords', 'preview', 'attachments',
-            'receivedAt', 'headers',
-            'htmlBody', 'bodyValues'],
-          bodyProperties: [ 'partId', 'blobId', 'size', 'type', 'cid',
-            'name', /* for attachment download */
-            'disposition' /* for attachment flag  */ ],
-          fetchHTMLBodyValues: true,
+          properties: args.properties,
+          bodyProperties: args.bodyProperties,
+          fetchTextBodyValues: args.fetchTextBodyValues,
+          fetchHTMLBodyValues: args.fetchHTMLBodyValues,
+          fetchAllBodyValues: args.fetchAllBodyValues,
+          maxBodyValueBytes: args.maxBodyValueBytes
         }, '1']
       ]).then(value => {
         const response = value[1] as IEmailGetResponse
         resolve(response.list)
       })
+    })
+  }
+
+  public thread_get (accountId: string|null, threadId: string): Promise<IEmailProperties[]> {
+    return this.getEmailPropsByThreadIds(accountId, [threadId], {
+      properties: [ 'blobId', 'threadId', 'mailboxIds', 'from', 'subject', 'keywords', 'preview', 'attachments',
+        'receivedAt', 'headers',
+        'htmlBody', 'bodyValues'],
+      bodyProperties: [ 'partId', 'blobId', 'size', 'type', 'cid',
+        'name', /* for attachment download */
+        'disposition' /* for attachment flag  */ ],
+      fetchHTMLBodyValues: true
     })
   }
 }

@@ -8,7 +8,7 @@ import {
   MINI_STATE, COMPACT_STATE, NORMAL_STATE, FULL_STATE,
   MIN_FULL, MIN_NORMAL, MIN_COMPACT,
  } from '@/utils/screen';
-import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem, $globalMailbox } from '@/utils/global'
+import { PLACEHOLDER_MAILBOXID, $globalState, resetGlobalState, MailboxItem, $globalMailbox, getMboxByRole } from '@/utils/global'
 import { Client } from 'jmap-client-ts'
 import { fillMboxList } from '@/utils/mailbox'
 import { store, boxList, otherAccounts } from '@/utils/store'
@@ -138,6 +138,7 @@ onMounted(() => {
     setStateMini()
   }
 
+  // FIXME: change to Promise chain
   if ($globalState.jclient && $globalState.loginEmail) {
     username.value = $globalState.loginEmail
     const client: Client = $globalState.jclient.client
@@ -170,9 +171,14 @@ onMounted(() => {
               })
             }
           }
+          store.trashId = getMboxByRole('trash')?? ''
+          store.junkId = getMboxByRole('junk')?? ''
         }).catch(error => {
           console.error(error.message)
         })
+      } else {
+        store.trashId = getMboxByRole('trash')?? ''
+        store.junkId = getMboxByRole('junk')?? ''
       }
 
       if (boxList.length > 0) {

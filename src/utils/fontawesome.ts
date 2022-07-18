@@ -9,6 +9,7 @@ import {
   faEnvelopeOpenText,
   faArrowPointer,
   faTrashCan,
+  faRecycle,
   faFolderOpen,
   faFolderPlus,
 } from "@fortawesome/free-solid-svg-icons"
@@ -22,6 +23,7 @@ library.add(
   faEnvelopeOpenText,
   faArrowPointer,
   faTrashCan,
+  faRecycle,
   faFolderOpen,
   faFolderPlus,
 )
