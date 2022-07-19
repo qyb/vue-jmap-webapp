@@ -22,19 +22,19 @@ export interface JAttachment {
 
 export class JClient {
   client: Client
-  authorizationHeader: string
   accessToken: string = ''
+  httpHeaders: { [headerName: string]: string }
 
   constructor (transport: Transport, authorizationHeader: string, sessionUrl: string = '/.well-known/jmap') {
-    this.authorizationHeader = authorizationHeader
+    this.httpHeaders = {
+      'Content-Type': 'application/json',
+      Authorization: authorizationHeader
+    }
     this.client = new Client({
       sessionUrl: sessionUrl,
       accessToken: '',
       transport: transport,
-      httpHeaders: {
-        'Content-Type': 'application/json',
-        Authorization: authorizationHeader
-      }
+      httpHeaders: this.httpHeaders
     })
   }
 
