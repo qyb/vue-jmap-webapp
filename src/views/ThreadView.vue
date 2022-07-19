@@ -129,9 +129,9 @@ function headerView(index: number): void {
 }
 function download(blobId: string, fname: string, type: string): void {
   let accountId = store.currentMbox.accountId as string
-  $globalState.jclient?.client.download(accountId, blobId, fname, type).then(blob => {
+  $globalState.jclient?.client.download(accountId, blobId, fname, type).then(buffer => {
     const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
+    link.href = URL.createObjectURL(new Blob([buffer]))
     link.download = fname
     link.click()
     URL.revokeObjectURL(link.href)

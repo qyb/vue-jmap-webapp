@@ -4,20 +4,21 @@ import { useRouter, useRoute } from 'vue-router'
 
 import { $globalState } from '@/utils/global'
 import { JClient } from '@/utils/jclient'
-/*
+
 import { XmlHttpRequestTransport } from 'jmap-client-ts/lib/utils/xml-http-request-transport'
 const transport = new XmlHttpRequestTransport(() => {
   let r = new XMLHttpRequest()
   return r
 })
+/*
 import { AxiosTransport } from 'jmap-client-ts/lib/utils/axios-transport'
 import axios from 'axios'
 const transport = new AxiosTransport(axios)
-*/
+
 import { FetchTransport } from 'jmap-client-ts/lib/utils/fetch-transport'
 const fetch = window.fetch.bind(window) // https://stackoverflow.com/a/47180009
 const transport = new FetchTransport(fetch)
-
+*/
 const router = useRouter()
 const route = useRoute()
 const login = ref('')

@@ -152,7 +152,7 @@ export function replaceCID(currentAccountId: string | null, inlineBlobList: Set<
     const blobId = inlineBlob[0]
 
     let accountId = currentAccountId as string
-    $globalState.jclient?.client.download(accountId, blobId, 'foo.bar', type).then(blob => {
+    $globalState.jclient?.client.download(accountId, blobId, 'foo.bar', type).then(buffer => {
       const reader = new FileReader()
       reader.onloadend = () => {
         const elements = document.getElementsByClassName(blobId)
@@ -162,7 +162,7 @@ export function replaceCID(currentAccountId: string | null, inlineBlobList: Set<
           // console.log(element.src)
         }
       }
-      reader.readAsDataURL(blob)
+      reader.readAsDataURL(new Blob([buffer]))
     })
   }
 }
